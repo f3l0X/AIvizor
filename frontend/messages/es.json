@@ -1,0 +1,13 @@
+{
+  "home": {
+    "tagline": "Tu ojo avizor contra el phishing.",
+    "analyzer": {
+      "title": "Analizador",
+      "description": "Pega un correo, URL o SMS y obtén una disección educativa con indicadores y veredicto."
+    },
+    "trainer": {
+      "title": "Entrenador",
+      "description": "Practica con ejemplos generados por IA. Aprende a detectar los indicadores tú mismo."
+    }
+  }
+}

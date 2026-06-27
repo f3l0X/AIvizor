@@ -1,0 +1,13 @@
+{
+  "home": {
+    "tagline": "See the phish before it bites.",
+    "analyzer": {
+      "title": "Analyzer",
+      "description": "Paste an email, URL, or SMS and get an educational breakdown with indicators and verdict."
+    },
+    "trainer": {
+      "title": "Trainer",
+      "description": "Practice with AI-generated samples. Learn to spot the indicators yourself."
+    }
+  }
+}
