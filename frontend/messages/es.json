@@ -25,7 +25,8 @@
         "sms": "SMS"
       },
       "submit": "Analizar",
-      "submitting": "Analizando..."
+      "submitting": "Analizando...",
+      "loadSample": "Cargar ejemplo"
     },
     "verdict": {
       "label": "Riesgo",
@@ -55,7 +56,9 @@
     "error": {
       "title": "No se pudo analizar",
       "generic": "El servidor devolvió un error. Inténtalo de nuevo.",
-      "network": "No se pudo conectar con el backend. ¿Está corriendo?"
+      "network": "No se pudo conectar con el backend. ¿Está corriendo en localhost:8000?",
+      "client": "El contenido no cumple los requisitos: {detail}",
+      "server": "El backend o el motor de IA fallaron: {detail}. Reintenta en unos segundos."
     }
   },
   "trainer": {
@@ -87,7 +90,10 @@
     "error": {
       "title": "No se pudo cargar el ejemplo",
       "generic": "El servidor devolvió un error. Inténtalo de nuevo.",
-      "network": "No se pudo conectar con el backend. ¿Está corriendo?"
-    }
+      "network": "No se pudo conectar con el backend. ¿Está corriendo en localhost:8000?",
+      "client": "Petición rechazada: {detail}",
+      "server": "El backend o el motor de IA fallaron: {detail}. Reintenta en unos segundos."
+    },
+    "emptyState": "Selecciona el tipo de contenido y la dificultad inicial, después pulsa Empezar."
   }
 }

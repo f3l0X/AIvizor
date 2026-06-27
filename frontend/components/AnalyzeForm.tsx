@@ -10,6 +10,8 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+
+import { loadSampleFor } from '../lib/samples';
 import type { AnalyzeRequest, InputType, Language } from '../lib/types';
 
 interface AnalyzeFormProps {
@@ -55,9 +57,17 @@ export function AnalyzeForm({ defaultLanguage, onSubmit, isLoading }: AnalyzeFor
           required
           maxLength={20000}
         />
-        <p className="mt-1 text-right text-xs text-slate-500 dark:text-slate-400">
-          {content.length} / 20000
-        </p>
+        <div className="mt-1 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+          <button
+            type="button"
+            onClick={() => setContent(loadSampleFor(language, inputType).content)}
+            disabled={isLoading}
+            className="text-brand underline-offset-2 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {t('loadSample')}
+          </button>
+          <span>{content.length} / 20000</span>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -104,8 +114,14 @@ export function AnalyzeForm({ defaultLanguage, onSubmit, isLoading }: AnalyzeFor
       <button
         type="submit"
         disabled={!canSubmit}
-        className="inline-flex items-center justify-center rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:focus:ring-offset-slate-950"
+        className="inline-flex items-center justify-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:focus:ring-offset-slate-950"
       >
+        {isLoading && (
+          <span
+            aria-hidden
+            className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white"
+          />
+        )}
         {isLoading ? t('submitting') : t('submit')}
       </button>
     </form>

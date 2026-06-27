@@ -20,6 +20,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { AnalysisResultView } from '../../../components/AnalysisResultView';
 import { AnalyzeForm } from '../../../components/AnalyzeForm';
 import { analyze, ApiError } from '../../../lib/api';
+import { errorMessage } from '../../../lib/errors';
 import type { AnalysisResult, AnalyzeRequest, Language } from '../../../lib/types';
 
 type Status =
@@ -40,11 +41,7 @@ export default function AnalyzePage() {
       const result = await analyze(req);
       setStatus({ kind: 'success', result });
     } catch (e) {
-      const message =
-        e instanceof ApiError
-          ? e.detail ?? t('error.generic')
-          : t('error.network');
-      setStatus({ kind: 'error', message });
+      setStatus({ kind: 'error', message: errorMessage(e, t) });
     }
   };
 

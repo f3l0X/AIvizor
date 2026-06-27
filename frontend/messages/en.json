@@ -25,7 +25,8 @@
         "sms": "SMS"
       },
       "submit": "Analyze",
-      "submitting": "Analyzing..."
+      "submitting": "Analyzing...",
+      "loadSample": "Load a sample"
     },
     "verdict": {
       "label": "Risk",
@@ -55,7 +56,9 @@
     "error": {
       "title": "Could not analyze",
       "generic": "The server returned an error. Please try again.",
-      "network": "Could not reach the backend. Is it running?"
+      "network": "Could not reach the backend. Is it running on localhost:8000?",
+      "client": "Content does not meet requirements: {detail}",
+      "server": "Backend or LLM provider failed: {detail}. Try again in a few seconds."
     }
   },
   "trainer": {
@@ -87,7 +90,10 @@
     "error": {
       "title": "Could not load sample",
       "generic": "The server returned an error. Please try again.",
-      "network": "Could not reach the backend. Is it running?"
-    }
+      "network": "Could not reach the backend. Is it running on localhost:8000?",
+      "client": "Request rejected: {detail}",
+      "server": "Backend or LLM provider failed: {detail}. Try again in a few seconds."
+    },
+    "emptyState": "Pick a content type and starting difficulty, then press Start."
   }
 }

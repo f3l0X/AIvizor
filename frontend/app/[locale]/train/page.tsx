@@ -19,7 +19,8 @@ import { useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 
 import { TrainerCard } from '../../../components/TrainerCard';
-import { ApiError, trainAnswer, trainNext } from '../../../lib/api';
+import { trainAnswer, trainNext } from '../../../lib/api';
+import { errorMessage } from '../../../lib/errors';
 import type {
   Difficulty,
   IndicatorType,
@@ -56,11 +57,7 @@ export default function TrainPage() {
       const sample = await trainNext({ difficulty: diff, input_type: inputType, language: locale });
       setStatus({ kind: 'sample', sample });
     } catch (e) {
-      setStatus({
-        kind: 'error',
-        message:
-          e instanceof ApiError ? e.detail ?? t('error.generic') : t('error.network'),
-      });
+      setStatus({ kind: 'error', message: errorMessage(e, t) });
     }
   };
 
@@ -76,11 +73,7 @@ export default function TrainPage() {
       });
       setStatus({ kind: 'feedback', sample, feedback });
     } catch (e) {
-      setStatus({
-        kind: 'error',
-        message:
-          e instanceof ApiError ? e.detail ?? t('error.generic') : t('error.network'),
-      });
+      setStatus({ kind: 'error', message: errorMessage(e, t) });
     }
   };
 
@@ -161,6 +154,12 @@ export default function TrainPage() {
             ? t('newSample')
             : t('start')}
       </button>
+
+      {!showCard && status.kind !== 'loading' && (
+        <p className="mt-6 rounded-md border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900/40 dark:text-slate-400">
+          {t('emptyState')}
+        </p>
+      )}
 
       {showCard && (
         <div className="mt-8">
