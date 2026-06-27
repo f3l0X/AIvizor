@@ -11,10 +11,14 @@
             "id": "256d9b276fb9988e",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "docs/architecture/llm-layer.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "Nueva pestaña"
+              "title": "llm-layer"
             }
           }
         ]
@@ -90,6 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
+                "file": "docs/architecture/llm-layer.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -99,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Enlaces entrantes"
+              "title": "Enlaces entrantes de llm-layer"
             }
           },
           {
@@ -108,11 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
+                "file": "docs/architecture/llm-layer.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Enlaces salientes"
+              "title": "Enlaces salientes de llm-layer"
             }
           },
           {
@@ -150,12 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
+                "file": "docs/architecture/llm-layer.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Esquema"
+              "title": "Esquema de llm-layer"
             }
           }
         ]
@@ -178,17 +185,18 @@
   },
   "active": "256d9b276fb9988e",
   "lastOpenFiles": [
-    "backend/tests/__pycache__/test_schemas.cpython-314-pytest-9.1.1.pyc",
-    "backend/tests/__pycache__/test_llm_mock.cpython-314-pytest-9.1.1.pyc",
-    "backend/app/llm/__pycache__/mock.cpython-314.pyc",
-    "backend/app/llm/__pycache__/gemini.cpython-314.pyc",
-    "backend/app/llm/__pycache__/claude.cpython-314.pyc",
-    "backend/app/llm/__pycache__/factory.cpython-314.pyc",
-    "backend/app/schemas/__pycache__/__init__.cpython-314.pyc",
-    "backend/app/schemas/__pycache__/training.cpython-314.pyc",
-    "backend/app/schemas/__pycache__/common.cpython-314.pyc",
-    "backend/app/schemas/__pycache__/analysis.cpython-314.pyc",
-    "backend/app/schemas/__pycache__",
+    "README.md.tmp.18260.7aa7e90a4d18",
+    "README.md.tmp.18260.0fa394901e98",
+    "docs/architecture/analyzer.md",
+    "backend/tests/__pycache__/test_prompts_analyzer.cpython-314-pytest-9.1.1.pyc",
+    "backend/tests/__pycache__/test_analyzer_service.cpython-314-pytest-9.1.1.pyc",
+    "backend/tests/__pycache__/test_analyze_api.cpython-314-pytest-9.1.1.pyc",
+    "backend/app/prompts/__pycache__/__init__.cpython-314.pyc",
+    "backend/app/prompts/__pycache__/analyzer.cpython-314.pyc",
+    "backend/app/prompts/__pycache__",
+    "backend/app/services/__pycache__/__init__.cpython-314.pyc",
+    "backend/app/services/__pycache__/analyzer.cpython-314.pyc",
+    "backend/app/services/__pycache__",
     "docs/architecture/llm-layer.md",
     "README.md",
     "AIvizor-PLANNING.md",

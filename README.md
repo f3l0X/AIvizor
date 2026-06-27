@@ -34,6 +34,20 @@ docker compose up --build
 - Backend  → http://localhost:8000/health
 - Postgres → localhost:5432
 
+Aplica la migración de la base de datos la primera vez:
+
+```bash
+docker compose exec backend alembic upgrade head
+```
+
+Prueba el Analyzer (Fase 2):
+
+```bash
+curl -sX POST http://localhost:8000/api/analyze \
+  -H 'Content-Type: application/json' \
+  -d '{"content":"Verifique su cuenta ya","input_type":"email","language":"es"}'
+```
+
 ## Estructura
 
 ```
@@ -47,7 +61,7 @@ PLANNING.md
 
 - [x] **Fase 0 — Scaffold.** Monorepo, docker-compose, FastAPI `/health`, Next.js base con i18n ES/EN, `.env.example`.
 - [x] **Fase 1 — Capa LLM.** Interfaz `LLMProvider`, esquemas Pydantic, `MockProvider` (sin coste), `GeminiProvider`, `ClaudeProvider`, factory por env, tests. Documento de diseño en [docs/architecture/llm-layer.md](./docs/architecture/llm-layer.md).
-- [ ] Fase 2 — Analizador (backend).
+- [x] **Fase 2 — Analizador (backend).** `POST /api/analyze` con prompts ES/EN delimitados, repositorio inyectable (SQL + InMemory), persistencia en `analyses`, migración Alembic. Documento en [docs/architecture/analyzer.md](./docs/architecture/analyzer.md).
 - [ ] Fase 3 — Seguridad: anti prompt-injection.
 - [ ] Fase 4 — Analizador (frontend).
 - [ ] Fase 5 — Entrenador (backend + frontend).
