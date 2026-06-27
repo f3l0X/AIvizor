@@ -18,8 +18,28 @@ from app.schemas.analysis import Indicator
 from app.schemas.common import Difficulty, InputType, Language, Verdict
 
 
+class TrainingSampleDraft(BaseModel):
+    """Lo que el LLM **genera**: solo el contenido y su verdad.
+
+    NO incluye ``difficulty``/``input_type``/``language``: esos los conoce el
+    caller (el servicio del trainer los pidió) y los rellena él al componer el
+    ``TrainingSample`` final. Esto tiene dos ventajas:
+
+    1. **Compatibilidad de schema.** ``Difficulty`` es un ``IntEnum`` y el
+       generador de ``response_schema`` de Gemini (google-genai) no acepta enums
+       de enteros — exige strings. Sacando ``difficulty`` del esquema que ve el
+       LLM, evitamos el fallo de validación del schema.
+    2. **Corrección.** El LLM no debe decidir metadatos que ya están fijados por
+       la petición; antes los sobreescribíamos igualmente, ahora ni se piden.
+    """
+
+    content: str = Field(min_length=1, max_length=20_000)
+    true_verdict: Verdict
+    true_indicators: list[Indicator] = Field(default_factory=list, max_length=20)
+
+
 class TrainingSample(BaseModel):
-    """Ejemplo generado por el LLM para que el usuario clasifique."""
+    """Ejemplo completo (draft + metadatos del caller) que se persiste y evalúa."""
 
     id: UUID
     input_type: InputType

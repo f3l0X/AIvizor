@@ -29,7 +29,7 @@ from pydantic import BaseModel
 from app.llm.base import LLMError
 from app.schemas.analysis import AnalysisResult, Indicator
 from app.schemas.common import Difficulty, IndicatorType, InputType, Language, Verdict
-from app.schemas.training import TrainingSample
+from app.schemas.training import TrainingSample, TrainingSampleDraft
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -63,7 +63,10 @@ class MockProvider:
     ) -> T:
         if response_model is AnalysisResult:
             return self._mock_analysis(user, language)  # type: ignore[return-value]
+        if response_model is TrainingSampleDraft:
+            return self._mock_training_draft(user, language)  # type: ignore[return-value]
         if response_model is TrainingSample:
+            # Compat: algún caller/test puede pedir el sample completo directamente.
             return self._mock_training_sample(user, language)  # type: ignore[return-value]
         raise LLMError(
             f"MockProvider no soporta el response_model {response_model.__name__}. "
@@ -112,28 +115,38 @@ class MockProvider:
         )
 
     @staticmethod
-    def _mock_training_sample(user: str, language: Language) -> TrainingSample:
-        # Id aleatorio: cada "next" inserta una fila nueva en training_attempts.
-        sample_id = uuid4()
-
-        # Inferimos la dificultad del propio prompt del usuario (lo monta el
-        # servicio del trainer y siempre contiene "dificultad N" / "difficulty N").
+    def _pick_template(user: str, language: Language) -> "_T":
+        # Inferimos dificultad/tipo del propio prompt (lo monta el servicio del
+        # trainer y siempre contiene "dificultad N" / "difficulty N" y `tipo`).
         difficulty = _infer_difficulty_from_prompt(user)
         input_type = _infer_input_type_from_prompt(user)
-
         # Buscamos por (difficulty, language, input_type). Si no hay plantillas
         # para esa terna, caemos al email del mismo idioma como red de seguridad.
         templates = _TEMPLATES.get(
             (difficulty, language, input_type),
             _TEMPLATES[(difficulty, language, InputType.EMAIL)],
         )
-        tpl = random.choice(templates)  # noqa: S311  — randomness no criptográfica
+        return random.choice(templates)  # noqa: S311  — randomness no criptográfica
 
+    @classmethod
+    def _mock_training_draft(cls, user: str, language: Language) -> TrainingSampleDraft:
+        tpl = cls._pick_template(user, language)
+        return TrainingSampleDraft(
+            content=tpl.content,
+            true_verdict=tpl.true_verdict,
+            true_indicators=tpl.indicators,
+        )
+
+    @classmethod
+    def _mock_training_sample(cls, user: str, language: Language) -> TrainingSample:
+        # Compat directo: compone el sample completo (no usado por el servicio,
+        # que ahora pide el draft, pero lo mantenemos por si un test lo pide).
+        tpl = cls._pick_template(user, language)
         return TrainingSample(
-            id=sample_id,
-            input_type=input_type,
+            id=uuid4(),
+            input_type=_infer_input_type_from_prompt(user),
             language=language,
-            difficulty=difficulty,
+            difficulty=_infer_difficulty_from_prompt(user),
             content=tpl.content,
             true_verdict=tpl.true_verdict,
             true_indicators=tpl.indicators,

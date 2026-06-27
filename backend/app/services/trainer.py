@@ -23,7 +23,7 @@ Scoring:
 
 from __future__ import annotations
 
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from app.db.repositories import TrainingAttemptRepository
 from app.llm.base import LLMError, LLMProvider
@@ -34,6 +34,7 @@ from app.schemas.training import (
     TrainingAnswer,
     TrainingFeedback,
     TrainingSample,
+    TrainingSampleDraft,
 )
 
 
@@ -45,25 +46,33 @@ async def generate_sample(
     llm: LLMProvider,
     repo: TrainingAttemptRepository,
 ) -> TrainingSample:
-    """Pide al LLM un ejemplo y lo persiste para evaluación futura."""
-    sample = await llm.complete_structured(
+    """Pide al LLM un ejemplo y lo persiste para evaluación futura.
+
+    El LLM solo genera el *draft* (contenido + verdad). El servicio compone el
+    ``TrainingSample`` final añadiendo los metadatos que ya conoce
+    (``difficulty``/``input_type``/``language``) y un ``id`` propio. Así el LLM
+    no decide metadatos fijados por la petición y, de paso, evitamos meter un
+    ``IntEnum`` en el schema que Gemini no sabe serializar.
+    """
+    draft = await llm.complete_structured(
         system=trainer_system_prompt(language),
         user=trainer_user_prompt(
             difficulty=difficulty,
             input_type=input_type,
             language=language,
         ),
-        response_model=TrainingSample,
+        response_model=TrainingSampleDraft,
         language=language,
     )
 
-    # Coherencia: el cliente pidió X, el LLM debe respetarlo.
-    sample = sample.model_copy(
-        update={
-            "difficulty": difficulty,
-            "input_type": input_type,
-            "language": language,
-        }
+    sample = TrainingSample(
+        id=uuid4(),
+        input_type=input_type,
+        language=language,
+        difficulty=difficulty,
+        content=draft.content,
+        true_verdict=draft.true_verdict,
+        true_indicators=draft.true_indicators,
     )
 
     await repo.save_sample(sample)

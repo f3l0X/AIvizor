@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     llm_provider: Literal["gemini", "claude", "mock"] = Field(default="mock")
     gemini_api_key: str = ""
     anthropic_api_key: str = ""
-    gemini_model: str = "gemini-2.0-flash"
+    gemini_model: str = "gemini-2.5-flash"
     claude_model: str = "claude-haiku-4-5-20251001"
 
     database_url: str = "postgresql+psycopg://aivizor:aivizor@db:5432/aivizor"

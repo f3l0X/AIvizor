@@ -56,6 +56,26 @@ cliente solo manda `sample_id` + su respuesta. La "verdad" se compara dentro
 de `evaluate_answer` sin volver a salir al cliente — solo los `missed_indicators`
 viajan de vuelta, y solo después de responder.
 
+## Generación: el LLM solo produce un *draft*
+
+Hay un tercer esquema, `TrainingSampleDraft`, que es lo que el LLM **genera**:
+solo `{content, true_verdict, true_indicators}`. El servicio compone el
+`TrainingSample` final añadiendo `id` + los metadatos que ya conoce
+(`difficulty`, `input_type`, `language` — los pidió el caller).
+
+Dos razones:
+
+1. **Corrección.** El LLM no debe decidir metadatos fijados por la petición.
+2. **Compatibilidad de schema (descubierta validando con Gemini real, Fase 6.D).**
+   `Difficulty` es un `IntEnum`. El generador de `response_schema` de
+   google-genai **no acepta enums de enteros** (exige strings) y rechazaba el
+   esquema completo con `ValidationError`. Al sacar `difficulty` del modelo que
+   ve el LLM, el problema desaparece. El Analyzer nunca lo sufrió porque todos
+   sus enums (`Verdict`, `IndicatorType`, `Language`, `InputType`) son `str`.
+
+> Nota de modelo: usar `gemini-2.5-flash`. `gemini-2.0-flash` devuelve
+> `RESOURCE_EXHAUSTED limit:0` en free tier (ya no tiene cuota gratuita).
+
 ## Scoring
 
 ```

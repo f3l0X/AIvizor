@@ -16,6 +16,42 @@ from app.services.trainer import (
 )
 
 
+async def test_generate_requests_draft_not_full_sample(
+    in_memory_training_repo: InMemoryTrainingAttemptRepository,
+) -> None:
+    """Regresión: el LLM debe recibir TrainingSampleDraft como response_model,
+    nunca TrainingSample. El draft no lleva el IntEnum `difficulty`, que el
+    generador de schema de Gemini no sabe serializar (validado con provider real
+    en Fase 6.D). El servicio compone el sample completo con los metadatos.
+    """
+    from app.schemas.common import Difficulty as Diff
+    from app.schemas.training import TrainingSampleDraft
+
+    captured: dict = {}
+
+    class _CapturingProvider:
+        name = "capturing"
+
+        async def complete_structured(self, *, system, user, response_model, language):  # noqa: ANN001
+            captured["response_model"] = response_model
+            return await MockProvider().complete_structured(
+                system=system, user=user, response_model=response_model, language=language
+            )
+
+    sample = await generate_sample(
+        difficulty=Diff.L4,
+        input_type=InputType.EMAIL,
+        language=Language.ES,
+        llm=_CapturingProvider(),  # type: ignore[arg-type]
+        repo=in_memory_training_repo,
+    )
+    assert captured["response_model"] is TrainingSampleDraft
+    # El servicio completa los metadatos a partir de la petición.
+    assert sample.difficulty is Diff.L4
+    assert sample.input_type is InputType.EMAIL
+    assert sample.language is Language.ES
+
+
 async def test_generate_persists_and_returns_sample_with_requested_difficulty(
     mock_provider: MockProvider,
     in_memory_training_repo: InMemoryTrainingAttemptRepository,
