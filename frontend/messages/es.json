@@ -1,4 +1,15 @@
 {
+  "common": {
+    "nav": {
+      "analyzer": "Analizador",
+      "trainer": "Entrenador"
+    },
+    "theme": {
+      "toggle": "Cambiar tema",
+      "toDark": "Cambiar a tema oscuro",
+      "toLight": "Cambiar a tema claro"
+    }
+  },
   "home": {
     "tagline": "Tu ojo avizor contra el phishing.",
     "analyzer": {

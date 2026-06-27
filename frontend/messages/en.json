@@ -1,4 +1,15 @@
 {
+  "common": {
+    "nav": {
+      "analyzer": "Analyzer",
+      "trainer": "Trainer"
+    },
+    "theme": {
+      "toggle": "Toggle theme",
+      "toDark": "Switch to dark theme",
+      "toLight": "Switch to light theme"
+    }
+  },
   "home": {
     "tagline": "See the phish before it bites.",
     "analyzer": {

@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "PLANNING.md",
+                "file": "docs/DEMO.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "PLANNING"
+              "title": "DEMO"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "PLANNING.md",
+                "file": "docs/DEMO.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Enlaces entrantes de PLANNING"
+              "title": "Enlaces entrantes de DEMO"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "PLANNING.md",
+                "file": "docs/DEMO.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Enlaces salientes de PLANNING"
+              "title": "Enlaces salientes de DEMO"
             }
           },
           {
@@ -156,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "PLANNING.md",
+                "file": "docs/DEMO.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Esquema de PLANNING"
+              "title": "Esquema de DEMO"
             }
           }
         ]
@@ -185,20 +185,20 @@
   },
   "active": "256d9b276fb9988e",
   "lastOpenFiles": [
+    "frontend/components/LanguageSwitcher.tsx.tmp.14760.313a5ceba4bc",
+    "frontend/messages/en.json.tmp.14760.cf2bc6b28e92",
+    "frontend/components/Header.tsx",
+    "frontend/components/Header.tsx.tmp.14760.918c0bafbe64",
+    "frontend/components/LanguageSwitcher.tsx",
+    "frontend/components/ThemeToggle.tsx",
+    "frontend/lib/theme.ts",
+    "frontend/lib/theme.ts.tmp.14760.edbdbe64230c",
+    "PLANNING.md",
     "README.md.tmp.14760.9486fddbfcfd",
     "docs/DEMO.md",
     "docs/DEMO.md.tmp.14760.7f03bb20fbeb",
     "frontend/node_modules/next/dist/server/lib/render-server.js",
-    "frontend/node_modules/next/dist/compiled/compression/index.js",
-    "frontend/node_modules/next/dist/shared/lib/router/utils/relativize-url.js",
-    "frontend/node_modules/next/dist/server/lib/router-utils/resolve-routes.js",
-    "frontend/node_modules/next/dist/server/lib/router-utils/filesystem.js",
-    "frontend/node_modules/next/dist/compiled/bytes/index.js",
-    "frontend/node_modules/next/dist/lib/metadata/constants.js",
-    "frontend/node_modules/next/dist/lib/metadata/clone-metadata.js",
-    "frontend/node_modules/next/dist/lib/metadata/generate/meta.js",
     "docs/architecture/trainer.md",
-    "PLANNING.md",
     "docs/architecture/security.md",
     "docs/architecture/llm-layer.md",
     "docs/architecture/analyzer.md",
