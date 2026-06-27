@@ -109,21 +109,33 @@ async def evaluate_answer(
 # ---------------------------------------------------------------------------
 
 def _score(sample: TrainingSample, answer: TrainingAnswer) -> tuple[bool, int, list]:
+    """Devuelve (verdict_correcto, score 0-100, indicadores que se le escaparon).
+
+    `missed` se calcula siempre como "indicadores verdaderos que el alumno NO
+    marcó" — independiente del verdict. Si el alumno se equivocó de verdict
+    pero acertó algún indicador, ese indicador NO debe aparecer en `missed`
+    (sería contradictorio con el ✓ verde que la UI le pinta).
+
+    Score:
+      - verdict incorrecto → 0 (puntúa la decisión final, no los indicadores).
+      - verdict correcto sin indicadores reales → 100.
+      - verdict correcto con indicadores → 100 * aciertos / total.
+    """
     verdict_correct = sample.true_verdict is answer.user_verdict
-
-    if not verdict_correct:
-        return False, 0, list(sample.true_indicators)
-
-    true_types = {ind.type.value for ind in sample.true_indicators}
     marked = set(answer.marked_indicator_types)
 
+    missed = [ind for ind in sample.true_indicators if ind.type.value not in marked]
+
+    if not verdict_correct:
+        return False, 0, missed
+
+    true_types = {ind.type.value for ind in sample.true_indicators}
     if not true_types:
         # Sample legítimo bien clasificado y sin indicadores que marcar.
         return True, 100, []
 
     hits = len(true_types & marked)
     pct = 100 * hits // len(true_types)
-    missed = [ind for ind in sample.true_indicators if ind.type.value not in marked]
     return True, pct, missed
 
 

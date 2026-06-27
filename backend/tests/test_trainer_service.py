@@ -96,6 +96,37 @@ async def test_wrong_verdict_scores_zero(
     assert feedback.next_difficulty is Difficulty.L1  # L2 - 1
 
 
+async def test_wrong_verdict_does_not_duplicate_marked_indicators_in_missed(
+    mock_provider: MockProvider,
+    in_memory_training_repo: InMemoryTrainingAttemptRepository,
+) -> None:
+    """Regresión: aunque te equivoques de verdict, los indicadores que SÍ
+    marcaste no deben aparecer en `missed_indicators` — eso contradiría el
+    badge verde de "acierto" del UI sobre esa misma casilla.
+    """
+    sample = await generate_sample(
+        difficulty=Difficulty.L1,
+        input_type=InputType.EMAIL,
+        language=Language.ES,
+        llm=mock_provider,
+        repo=in_memory_training_repo,
+    )
+    wrong_verdict = Verdict.LEGIT if sample.true_verdict is not Verdict.LEGIT else Verdict.PHISHING
+    marked_types = [sample.true_indicators[0].type.value]  # marca solo el primero
+    answer = TrainingAnswer(
+        sample_id=sample.id,
+        user_verdict=wrong_verdict,
+        marked_indicator_types=marked_types,
+    )
+    feedback = await evaluate_answer(answer, repo=in_memory_training_repo)
+
+    assert feedback.correct is False
+    assert feedback.score == 0
+    missed_types = {i.type.value for i in feedback.missed_indicators}
+    assert sample.true_indicators[0].type.value not in missed_types  # marcado, NO en missed
+    assert len(missed_types) == len(sample.true_indicators) - 1
+
+
 async def test_partial_indicators_score(
     mock_provider: MockProvider,
     in_memory_training_repo: InMemoryTrainingAttemptRepository,
