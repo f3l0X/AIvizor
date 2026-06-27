@@ -19,13 +19,35 @@ export const themeInitScript = `(function(){try{
   document.documentElement.classList.toggle('dark', dark);
 }catch(e){}})();`;
 
-export function getCurrentTheme(): Theme {
-  if (typeof document === 'undefined') return 'light';
-  return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+/** Preferencia efectiva: lo guardado en localStorage o, si no hay, el SO.
+ * Esta es la FUENTE DE VERDAD para reimponer el tema tras una navegación —
+ * no leemos la clase del <html> porque puede haberse perdido en el re-render
+ * del layout al cambiar de locale. */
+export function getStoredPreference(): Theme {
+  try {
+    const t = localStorage.getItem(THEME_STORAGE_KEY);
+    if (t === 'dark' || t === 'light') return t;
+  } catch {
+    // localStorage no disponible
+  }
+  if (
+    typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-color-scheme: dark)').matches
+  ) {
+    return 'dark';
+  }
+  return 'light';
 }
 
-export function applyTheme(theme: Theme): void {
+/** Aplica el tema a la clase del <html> SIN persistir. Para sincronizar tras
+ * navegar (no queremos "fijar" la preferencia del SO como elección explícita). */
+export function applyThemeClass(theme: Theme): void {
   document.documentElement.classList.toggle('dark', theme === 'dark');
+}
+
+/** Elección explícita del usuario (click en el toggle): aplica y persiste. */
+export function applyTheme(theme: Theme): void {
+  applyThemeClass(theme);
   try {
     localStorage.setItem(THEME_STORAGE_KEY, theme);
   } catch {

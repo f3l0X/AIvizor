@@ -9,19 +9,27 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 
-import { applyTheme, getCurrentTheme, type Theme } from '../lib/theme';
+import { applyTheme, applyThemeClass, getStoredPreference, type Theme } from '../lib/theme';
 
 export function ThemeToggle() {
   const t = useTranslations('common.theme');
+  const pathname = usePathname();
   const [theme, setTheme] = useState<Theme>('light');
   const [mounted, setMounted] = useState(false);
 
+  // Reimponer el tema en cada cambio de ruta. Cambiar de locale re-renderiza el
+  // layout y puede perder la clase `dark` del <html> (el script anti-FOUC solo
+  // corre en la carga inicial). Releemos la preferencia persistida y la
+  // reaplicamos para que el tema sobreviva a la navegación.
   useEffect(() => {
-    setTheme(getCurrentTheme());
+    const pref = getStoredPreference();
+    applyThemeClass(pref);
+    setTheme(pref);
     setMounted(true);
-  }, []);
+  }, [pathname]);
 
   const toggle = () => {
     const next: Theme = theme === 'dark' ? 'light' : 'dark';
