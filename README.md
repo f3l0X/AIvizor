@@ -1,5 +1,8 @@
 # AIvizor
 
+[![Backend tests](https://github.com/f3l0X/AIvizor/actions/workflows/backend-tests.yml/badge.svg)](https://github.com/f3l0X/AIvizor/actions/workflows/backend-tests.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+
 > **Tu ojo avizor contra el phishing. / See the phish before it bites.**
 
 Anti-phishing **educativo, bajo demanda y bilingüe ES/EN** que demuestra cómo
