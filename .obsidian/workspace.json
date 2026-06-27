@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "docs/architecture/security.md",
+                "file": "PLANNING.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "security"
+              "title": "PLANNING"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "docs/architecture/security.md",
+                "file": "PLANNING.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Enlaces entrantes de security"
+              "title": "Enlaces entrantes de PLANNING"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "docs/architecture/security.md",
+                "file": "PLANNING.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Enlaces salientes de security"
+              "title": "Enlaces salientes de PLANNING"
             }
           },
           {
@@ -156,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "docs/architecture/security.md",
+                "file": "PLANNING.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Esquema de security"
+              "title": "Esquema de PLANNING"
             }
           }
         ]
@@ -185,18 +185,18 @@
   },
   "active": "256d9b276fb9988e",
   "lastOpenFiles": [
-    "README.md.tmp.13504.2f22fa3f6265",
+    "docs/architecture/security.md",
+    "frontend/node_modules/next/dist/compiled/babel/code-frame.js",
+    "frontend/node_modules/next/dist/compiled/shell-quote/index.js",
+    "frontend/node_modules/next/dist/compiled/source-map08/source-map.js",
+    "frontend/node_modules/next/dist/server/setup-http-agent-env.js",
+    "frontend/node_modules/next/dist/shared/lib/router/utils/remove-path-prefix.js",
+    "frontend/node_modules/next/dist/server/app-render/encryption-utils.js",
+    "frontend/node_modules/next/dist/compiled/@opentelemetry/api/index.js",
+    "frontend/node_modules/next/dist/compiled/lru-cache/index.js",
+    "frontend/node_modules/next/dist/server/require.js",
+    "frontend/node_modules/next/dist/shared/lib/router/utils/sorted-routes.js",
     "docs/architecture/trainer.md",
-    "frontend/messages/es.json.tmp.13504.eef0fb53ffb6",
-    "frontend/components/TrainerCard.tsx",
-    "backend/tests/__pycache__/test_trainer_service.cpython-314-pytest-9.1.1.pyc",
-    "backend/tests/__pycache__/test_train_api.cpython-314-pytest-9.1.1.pyc",
-    "backend/app/prompts/__pycache__/trainer.cpython-314.pyc",
-    "backend/app/services/__pycache__/trainer.cpython-314.pyc",
-    "backend/app/api/__pycache__/train.cpython-314.pyc",
-    "backend/tests/test_train_api.py",
-    "backend/tests/test_train_api.py.tmp.13504.1ac433c46dd5",
-    "backend/tests/test_trainer_service.py",
     "docs/architecture/llm-layer.md",
     "docs/architecture/analyzer.md",
     "README.md",
