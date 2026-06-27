@@ -6,7 +6,14 @@
  *   usuario) de 5xx (problema del backend / LLM provider).
  */
 
-import type { AnalysisResult, AnalyzeRequest } from './types';
+import type {
+  AnalysisResult,
+  AnalyzeRequest,
+  TrainingAnswer,
+  TrainingFeedback,
+  TrainingNextRequest,
+  TrainingSamplePublic,
+} from './types';
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
 
@@ -59,6 +66,28 @@ export async function analyze(req: AnalyzeRequest): Promise<AnalysisResult> {
     headers: { 'Content-Type': 'application/json' },
     cache: 'no-store',
     body: JSON.stringify(req),
+  });
+  if (!r.ok) throw await parseError(r);
+  return r.json();
+}
+
+export async function trainNext(req: TrainingNextRequest): Promise<TrainingSamplePublic> {
+  const r = await fetch(`${API_URL}/api/train/next`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    cache: 'no-store',
+    body: JSON.stringify(req),
+  });
+  if (!r.ok) throw await parseError(r);
+  return r.json();
+}
+
+export async function trainAnswer(answer: TrainingAnswer): Promise<TrainingFeedback> {
+  const r = await fetch(`${API_URL}/api/train/answer`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    cache: 'no-store',
+    body: JSON.stringify(answer),
   });
   if (!r.ok) throw await parseError(r);
   return r.json();

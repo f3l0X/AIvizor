@@ -44,3 +44,39 @@ export interface AnalyzeRequest {
   input_type: InputType;
   language?: Language;
 }
+
+// ---------------------------------------------------------------------------
+// Trainer (Módulo B)
+// ---------------------------------------------------------------------------
+
+export type Difficulty = 1 | 2 | 3 | 4 | 5;
+
+export interface TrainingNextRequest {
+  difficulty: Difficulty;
+  input_type: InputType;
+  language: Language;
+}
+
+/** Sample que recibe el cliente: SIN la verdad. */
+export interface TrainingSamplePublic {
+  id: string;
+  input_type: InputType;
+  language: Language;
+  difficulty: Difficulty;
+  content: string;
+}
+
+export interface TrainingAnswer {
+  sample_id: string;
+  user_verdict: Verdict;
+  marked_indicator_types: string[];
+}
+
+export interface TrainingFeedback {
+  sample_id: string;
+  correct: boolean;
+  score: number; // 0-100
+  missed_indicators: Indicator[];
+  explanation: string;
+  next_difficulty: Difficulty;
+}

@@ -57,5 +57,35 @@
       "generic": "The server returned an error. Please try again.",
       "network": "Could not reach the backend. Is it running?"
     }
+  },
+  "trainer": {
+    "title": "Trainer",
+    "subtitle": "Practice with AI-generated samples. Classify, mark the indicators, learn from your misses.",
+    "back": "Back",
+    "start": "Start",
+    "newSample": "New sample",
+    "loadingSample": "Loading sample...",
+    "submit": "Check answer",
+    "submitting": "Checking...",
+    "difficultyLabel": "Level {level}",
+    "verdictQuestion": "What's your verdict?",
+    "indicatorsQuestion": "Which indicators do you see? (check all that apply)",
+    "inputType": {
+      "email": "Email",
+      "url": "URL",
+      "sms": "SMS"
+    },
+    "feedback": {
+      "correct": "✓ Correct",
+      "wrong": "✗ Wrong",
+      "score": "Score {score}/100",
+      "missed": "{count, plural, one {You missed this indicator} other {You missed # indicators}}",
+      "nextLevel": "Next (level {level})"
+    },
+    "error": {
+      "title": "Could not load sample",
+      "generic": "The server returned an error. Please try again.",
+      "network": "Could not reach the backend. Is it running?"
+    }
   }
 }

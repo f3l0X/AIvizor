@@ -30,6 +30,39 @@ class TrainingSample(BaseModel):
     true_indicators: list[Indicator] = Field(default_factory=list, max_length=20)
 
 
+class TrainingSamplePublic(BaseModel):
+    """Vista del sample que recibe el cliente: SIN la verdad (verdict/indicators).
+
+    Si devolviésemos `TrainingSample` directamente, el cliente vería la respuesta
+    correcta antes de contestar. Mantenemos la "verdad" server-side e indexada
+    por ``id``; el cliente sólo manda ``sample_id`` + su respuesta.
+    """
+
+    id: UUID
+    input_type: InputType
+    language: Language
+    difficulty: Difficulty
+    content: str
+
+    @classmethod
+    def from_internal(cls, s: "TrainingSample") -> "TrainingSamplePublic":
+        return cls(
+            id=s.id,
+            input_type=s.input_type,
+            language=s.language,
+            difficulty=s.difficulty,
+            content=s.content,
+        )
+
+
+class TrainingNextRequest(BaseModel):
+    """Payload del endpoint ``POST /api/train/next``."""
+
+    difficulty: Difficulty = Difficulty.L1
+    input_type: InputType = InputType.EMAIL
+    language: Language = Language.ES
+
+
 class TrainingAnswer(BaseModel):
     """Respuesta del usuario a un sample."""
 

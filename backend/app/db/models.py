@@ -37,3 +37,29 @@ class Analysis(Base):
 
     def __repr__(self) -> str:  # pragma: no cover
         return f"<Analysis id={self.id} verdict={self.verdict} score={self.risk_score}>"
+
+
+class TrainingAttempt(Base):
+    """Un sample del Trainer + (opcionalmente) la respuesta del alumno.
+
+    Se inserta con ``user_answer=None`` al pedir ``/api/train/next``. La fila se
+    actualiza con la respuesta y el scoring al llegar ``/api/train/answer``.
+    Mantener todo en una sola tabla simplifica la consulta y refleja el flujo
+    real (un sample tiene como máximo un intento).
+    """
+
+    __tablename__ = "training_attempts"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    difficulty: Mapped[int] = mapped_column(Integer)
+    sample: Mapped[dict] = mapped_column(JSON)  # TrainingSample completo
+    user_answer: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    correct: Mapped[bool | None] = mapped_column(nullable=True)
+    score: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    answered_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+    def __repr__(self) -> str:  # pragma: no cover
+        return f"<TrainingAttempt id={self.id} diff={self.difficulty} score={self.score}>"

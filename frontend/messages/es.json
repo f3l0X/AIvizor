@@ -57,5 +57,35 @@
       "generic": "El servidor devolvió un error. Inténtalo de nuevo.",
       "network": "No se pudo conectar con el backend. ¿Está corriendo?"
     }
+  },
+  "trainer": {
+    "title": "Entrenador",
+    "subtitle": "Practica con ejemplos generados por IA. Clasifica, marca los indicadores y aprende de tus fallos.",
+    "back": "Volver",
+    "start": "Empezar",
+    "newSample": "Nuevo ejemplo",
+    "loadingSample": "Cargando ejemplo...",
+    "submit": "Comprobar respuesta",
+    "submitting": "Comprobando...",
+    "difficultyLabel": "Nivel {level}",
+    "verdictQuestion": "¿Cuál es tu veredicto?",
+    "indicatorsQuestion": "¿Qué indicadores ves? (marca todos los que apliquen)",
+    "inputType": {
+      "email": "Correo",
+      "url": "URL",
+      "sms": "SMS"
+    },
+    "feedback": {
+      "correct": "✓ Correcto",
+      "wrong": "✗ Incorrecto",
+      "score": "Puntuación {score}/100",
+      "missed": "{count, plural, one {Te escapó este indicador} other {Te escaparon # indicadores}}",
+      "nextLevel": "Siguiente (nivel {level})"
+    },
+    "error": {
+      "title": "No se pudo cargar el ejemplo",
+      "generic": "El servidor devolvió un error. Inténtalo de nuevo.",
+      "network": "No se pudo conectar con el backend. ¿Está corriendo?"
+    }
   }
 }

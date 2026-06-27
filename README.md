@@ -64,7 +64,7 @@ PLANNING.md
 - [x] **Fase 2 — Analizador (backend).** `POST /api/analyze` con prompts ES/EN delimitados, repositorio inyectable (SQL + InMemory), persistencia en `analyses`, migración Alembic. Documento en [docs/architecture/analyzer.md](./docs/architecture/analyzer.md).
 - [x] **Fase 3 — Seguridad: anti prompt-injection.** Defensa por capas (wrapper + detector + prompt endurecido + schema validado + coerción servidor) + suite de payloads. Documento en [docs/architecture/security.md](./docs/architecture/security.md).
 - [x] **Fase 4 — Analizador (frontend).** Pantalla `/analyze` con formulario, RiskMeter, IndicatorCard y resultado completo. Bilingüe ES/EN, modo oscuro, accesibilidad básica. Documento en [docs/architecture/frontend-analyzer.md](./docs/architecture/frontend-analyzer.md).
-- [ ] Fase 5 — Entrenador (backend + frontend).
+- [x] **Fase 5 — Entrenador (backend + frontend).** `POST /api/train/{next,answer}` con la "verdad" siempre server-side, scoring + dificultad adaptativa, persistencia en `training_attempts`. Frontend `/train` con TrainerCard interactivo. Documento en [docs/architecture/trainer.md](./docs/architecture/trainer.md).
 - [ ] Fase 6 — Pulido + demo + deploy.
 
 ## Seguridad

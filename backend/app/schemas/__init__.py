@@ -15,7 +15,9 @@ from app.schemas.common import (
 from app.schemas.training import (
     TrainingAnswer,
     TrainingFeedback,
+    TrainingNextRequest,
     TrainingSample,
+    TrainingSamplePublic,
 )
 
 __all__ = [
@@ -28,6 +30,8 @@ __all__ = [
     "Language",
     "TrainingAnswer",
     "TrainingFeedback",
+    "TrainingNextRequest",
     "TrainingSample",
+    "TrainingSamplePublic",
     "Verdict",
 ]
