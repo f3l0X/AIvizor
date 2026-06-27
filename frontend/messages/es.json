@@ -9,5 +9,53 @@
       "title": "Entrenador",
       "description": "Practica con ejemplos generados por IA. Aprende a detectar los indicadores tú mismo."
     }
+  },
+  "analyzer": {
+    "title": "Analizador",
+    "subtitle": "Pega un correo, una URL o un SMS sospechoso. Te devolvemos veredicto, score y los indicadores explicados.",
+    "back": "Volver",
+    "form": {
+      "contentLabel": "Contenido a analizar",
+      "contentPlaceholder": "Pega aquí el correo, URL o SMS sospechoso...",
+      "inputTypeLabel": "Tipo de contenido",
+      "languageLabel": "Idioma del análisis",
+      "inputType": {
+        "email": "Correo",
+        "url": "URL",
+        "sms": "SMS"
+      },
+      "submit": "Analizar",
+      "submitting": "Analizando..."
+    },
+    "verdict": {
+      "label": "Riesgo",
+      "legit": "Legítimo",
+      "suspicious": "Sospechoso",
+      "phishing": "Phishing"
+    },
+    "result": {
+      "ariaLabel": "Resultado del análisis",
+      "summary": "Resumen",
+      "indicators": "{count, plural, =0 {Sin indicadores} one {1 indicador} other {# indicadores}}",
+      "noIndicators": "No se detectaron indicadores. El contenido parece legítimo."
+    },
+    "indicator": {
+      "type": {
+        "sender_spoofing": "Suplantación de remitente",
+        "lookalike_domain": "Dominio parecido al legítimo",
+        "link_mismatch": "Enlace que no apunta a lo que dice",
+        "urgency_language": "Lenguaje de urgencia",
+        "credential_request": "Solicitud de credenciales",
+        "payment_request": "Solicitud de pago",
+        "brand_or_grammar_error": "Errores de marca o gramática",
+        "suspicious_attachment": "Adjunto sospechoso",
+        "other": "Otro"
+      }
+    },
+    "error": {
+      "title": "No se pudo analizar",
+      "generic": "El servidor devolvió un error. Inténtalo de nuevo.",
+      "network": "No se pudo conectar con el backend. ¿Está corriendo?"
+    }
   }
 }

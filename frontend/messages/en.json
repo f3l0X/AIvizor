@@ -9,5 +9,53 @@
       "title": "Trainer",
       "description": "Practice with AI-generated samples. Learn to spot the indicators yourself."
     }
+  },
+  "analyzer": {
+    "title": "Analyzer",
+    "subtitle": "Paste a suspicious email, URL or SMS. We return a verdict, a score, and the indicators explained.",
+    "back": "Back",
+    "form": {
+      "contentLabel": "Content to analyze",
+      "contentPlaceholder": "Paste the suspicious email, URL or SMS here...",
+      "inputTypeLabel": "Content type",
+      "languageLabel": "Analysis language",
+      "inputType": {
+        "email": "Email",
+        "url": "URL",
+        "sms": "SMS"
+      },
+      "submit": "Analyze",
+      "submitting": "Analyzing..."
+    },
+    "verdict": {
+      "label": "Risk",
+      "legit": "Legit",
+      "suspicious": "Suspicious",
+      "phishing": "Phishing"
+    },
+    "result": {
+      "ariaLabel": "Analysis result",
+      "summary": "Summary",
+      "indicators": "{count, plural, =0 {No indicators} one {1 indicator} other {# indicators}}",
+      "noIndicators": "No indicators detected. The content looks legitimate."
+    },
+    "indicator": {
+      "type": {
+        "sender_spoofing": "Sender spoofing",
+        "lookalike_domain": "Look-alike domain",
+        "link_mismatch": "Link does not match its label",
+        "urgency_language": "Urgency language",
+        "credential_request": "Credential request",
+        "payment_request": "Payment request",
+        "brand_or_grammar_error": "Brand or grammar errors",
+        "suspicious_attachment": "Suspicious attachment",
+        "other": "Other"
+      }
+    },
+    "error": {
+      "title": "Could not analyze",
+      "generic": "The server returned an error. Please try again.",
+      "network": "Could not reach the backend. Is it running?"
+    }
   }
 }

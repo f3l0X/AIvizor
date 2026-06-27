@@ -63,7 +63,7 @@ PLANNING.md
 - [x] **Fase 1 — Capa LLM.** Interfaz `LLMProvider`, esquemas Pydantic, `MockProvider` (sin coste), `GeminiProvider`, `ClaudeProvider`, factory por env, tests. Documento de diseño en [docs/architecture/llm-layer.md](./docs/architecture/llm-layer.md).
 - [x] **Fase 2 — Analizador (backend).** `POST /api/analyze` con prompts ES/EN delimitados, repositorio inyectable (SQL + InMemory), persistencia en `analyses`, migración Alembic. Documento en [docs/architecture/analyzer.md](./docs/architecture/analyzer.md).
 - [x] **Fase 3 — Seguridad: anti prompt-injection.** Defensa por capas (wrapper + detector + prompt endurecido + schema validado + coerción servidor) + suite de payloads. Documento en [docs/architecture/security.md](./docs/architecture/security.md).
-- [ ] Fase 4 — Analizador (frontend).
+- [x] **Fase 4 — Analizador (frontend).** Pantalla `/analyze` con formulario, RiskMeter, IndicatorCard y resultado completo. Bilingüe ES/EN, modo oscuro, accesibilidad básica. Documento en [docs/architecture/frontend-analyzer.md](./docs/architecture/frontend-analyzer.md).
 - [ ] Fase 5 — Entrenador (backend + frontend).
 - [ ] Fase 6 — Pulido + demo + deploy.
 
