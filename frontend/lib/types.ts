@@ -77,6 +77,8 @@ export interface TrainingFeedback {
   correct: boolean;
   score: number; // 0-100
   missed_indicators: Indicator[];
+  /** Tipos VERDADEROS del sample. Permite al UI distinguir aciertos de falsos positivos. */
+  true_indicator_types: string[];
   explanation: string;
   next_difficulty: Difficulty;
 }

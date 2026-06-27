@@ -61,7 +61,25 @@ export function TrainerCard({
     setMarked(next);
   };
 
-  const missedTypes = new Set((feedback?.missed_indicators ?? []).map((i) => i.type));
+  const trueTypes = new Set<string>(feedback?.true_indicator_types ?? []);
+
+  /** Estado visual de cada checkbox en modo feedback.
+   *   - hit:           el alumno marcó un indicador verdadero  → ✓ verde
+   *   - falsePositive: marcó algo que NO era indicador          → ✗ rojo
+   *   - missed:        no marcó un indicador verdadero          → ⚠ ámbar
+   *   - neutral:       no marcó y tampoco era verdadero         → sin badge
+   */
+  const stateOf = (
+    type: IndicatorType,
+  ): 'hit' | 'falsePositive' | 'missed' | 'neutral' => {
+    if (!locked) return 'neutral';
+    const wasMarked = marked.has(type);
+    const isTrue = trueTypes.has(type);
+    if (wasMarked && isTrue) return 'hit';
+    if (wasMarked && !isTrue) return 'falsePositive';
+    if (!wasMarked && isTrue) return 'missed';
+    return 'neutral';
+  };
 
   return (
     <article className="space-y-6 rounded-lg border border-slate-200 p-6 dark:border-slate-800">
@@ -110,17 +128,30 @@ export function TrainerCard({
         <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
           {INDICATOR_TYPES.map((type) => {
             const checked = marked.has(type);
-            const isMissed = locked && missedTypes.has(type);
+            const state = stateOf(type);
+
+            const styleByState = {
+              hit: 'border-emerald-500 bg-emerald-50 dark:border-emerald-700 dark:bg-emerald-950/30',
+              falsePositive:
+                'border-red-400 bg-red-50 dark:border-red-700 dark:bg-red-950/30',
+              missed:
+                'border-amber-400 bg-amber-50 dark:border-amber-700 dark:bg-amber-950/30',
+              neutral: checked
+                ? 'border-brand bg-brand/5'
+                : 'border-slate-200 dark:border-slate-800',
+            }[state];
+
+            const badge = {
+              hit: <span aria-hidden className="ml-auto text-emerald-700 dark:text-emerald-300">✓</span>,
+              falsePositive: <span aria-hidden className="ml-auto text-red-700 dark:text-red-300">✗</span>,
+              missed: <span aria-hidden className="ml-auto text-amber-700 dark:text-amber-300">⚠</span>,
+              neutral: null,
+            }[state];
+
             return (
               <label
                 key={type}
-                className={`flex cursor-pointer items-start gap-2 rounded-md border p-2 text-sm transition ${
-                  isMissed
-                    ? 'border-amber-400 bg-amber-50 dark:border-amber-700 dark:bg-amber-950/30'
-                    : checked
-                      ? 'border-brand bg-brand/5'
-                      : 'border-slate-200 dark:border-slate-800'
-                } ${locked ? 'cursor-default' : ''}`}
+                className={`flex cursor-pointer items-start gap-2 rounded-md border p-2 text-sm transition ${styleByState} ${locked ? 'cursor-default' : ''}`}
               >
                 <input
                   type="checkbox"
@@ -130,6 +161,7 @@ export function TrainerCard({
                   onChange={() => toggleType(type)}
                 />
                 <span className="leading-snug">{tInd(`type.${type}`)}</span>
+                {badge}
               </label>
             );
           })}

@@ -95,6 +95,7 @@ async def evaluate_answer(
         correct=correct,
         score=score,
         missed_indicators=missed,
+        true_indicator_types=[ind.type.value for ind in sample.true_indicators],
         explanation=_explain(sample, answer, correct, sample.language),
         next_difficulty=next_diff,
     )

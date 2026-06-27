@@ -183,19 +183,20 @@
       "bases:Crear nueva base": false
     }
   },
-  "active": "256d9b276fb9988e",
+  "active": "a441c45d6ae0585c",
   "lastOpenFiles": [
+    "frontend/components/TrainerCard.tsx.tmp.13504.6e38d95380a4",
+    "frontend/node_modules/dlv/package.json",
+    "frontend/node_modules/postcss-js/package.json",
+    "frontend/node_modules/@jridgewell/resolve-uri/package.json",
+    "frontend/node_modules/postcss-selector-parser/package.json",
+    "frontend/node_modules/@jridgewell/trace-mapping/package.json",
+    "frontend/node_modules/@jridgewell/sourcemap-codec/package.json",
+    "frontend/node_modules/braces/package.json",
+    "frontend/node_modules/@nodelib/fs.stat/package.json",
+    "frontend/node_modules/@nodelib/fs.walk/package.json",
+    "frontend/node_modules/is-glob/package.json",
     "docs/architecture/security.md",
-    "frontend/node_modules/next/dist/compiled/babel/code-frame.js",
-    "frontend/node_modules/next/dist/compiled/shell-quote/index.js",
-    "frontend/node_modules/next/dist/compiled/source-map08/source-map.js",
-    "frontend/node_modules/next/dist/server/setup-http-agent-env.js",
-    "frontend/node_modules/next/dist/shared/lib/router/utils/remove-path-prefix.js",
-    "frontend/node_modules/next/dist/server/app-render/encryption-utils.js",
-    "frontend/node_modules/next/dist/compiled/@opentelemetry/api/index.js",
-    "frontend/node_modules/next/dist/compiled/lru-cache/index.js",
-    "frontend/node_modules/next/dist/server/require.js",
-    "frontend/node_modules/next/dist/shared/lib/router/utils/sorted-routes.js",
     "docs/architecture/trainer.md",
     "docs/architecture/llm-layer.md",
     "docs/architecture/analyzer.md",
@@ -219,7 +220,6 @@
     "frontend/node_modules/eslint-plugin-import/docs/rules/no-unresolved.md",
     "frontend/node_modules/eslint-plugin-import/docs/rules/no-unassigned-import.md",
     "frontend/node_modules/eslint-plugin-import/docs/rules/no-self-import.md",
-    "frontend/node_modules/eslint-plugin-import/docs/rules/no-restricted-paths.md",
-    "frontend/node_modules/eslint-plugin-import/docs/rules/no-relative-packages.md"
+    "frontend/node_modules/eslint-plugin-import/docs/rules/no-restricted-paths.md"
   ]
 }

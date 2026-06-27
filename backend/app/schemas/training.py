@@ -72,11 +72,20 @@ class TrainingAnswer(BaseModel):
 
 
 class TrainingFeedback(BaseModel):
-    """Devolución educativa tras la respuesta del usuario."""
+    """Devolución educativa tras la respuesta del usuario.
+
+    - ``missed_indicators``: indicadores verdaderos que el alumno NO marcó
+      (con su explicación, para que el frontend los muestre como "te faltó").
+    - ``true_indicator_types``: tipos verdaderos completos (los que faltaron
+      + los que el alumno acertó). El frontend lo usa para distinguir aciertos
+      (✓ verde) de falsos positivos (✗ rojo); sin esta lista el cliente solo
+      sabría qué le faltó pero no qué marcó correctamente.
+    """
 
     sample_id: UUID
     correct: bool
     score: int = Field(ge=0, le=100)
     missed_indicators: list[Indicator] = Field(default_factory=list)
+    true_indicator_types: list[str] = Field(default_factory=list)
     explanation: str
     next_difficulty: Difficulty
