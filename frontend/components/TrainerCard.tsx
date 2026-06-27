@@ -12,7 +12,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 
-import { INDICATOR_TYPES } from '../lib/types';
+import { INDICATORS_BY_INPUT_TYPE } from '../lib/types';
 import type {
   Difficulty,
   IndicatorType,
@@ -126,7 +126,7 @@ export function TrainerCard({
           {t('indicatorsQuestion')}
         </p>
         <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-          {INDICATOR_TYPES.map((type) => {
+          {INDICATORS_BY_INPUT_TYPE[sample.input_type].map((type) => {
             const checked = marked.has(type);
             const state = stateOf(type);
 

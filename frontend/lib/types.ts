@@ -25,6 +25,30 @@ export const INDICATOR_TYPES = [
 
 export type IndicatorType = (typeof INDICATOR_TYPES)[number];
 
+/**
+ * Qué tipos de indicador tienen sentido para cada formato de entrada.
+ *
+ * - email: todos (es el formato más rico).
+ * - url:   prácticamente solo el dominio (no hay cabeceras, ni cuerpo, ni adjuntos).
+ * - sms:   texto corto sin HTML ni adjuntos; sin sender headers ni link_mismatch.
+ *
+ * Mantener esta tabla aquí (no en backend) porque es decisión de UI; el backend
+ * acepta cualquier IndicatorType para cualquier input_type — la restricción es
+ * pedagógica.
+ */
+export const INDICATORS_BY_INPUT_TYPE: Record<InputType, readonly IndicatorType[]> = {
+  email: INDICATOR_TYPES,
+  url: ['lookalike_domain', 'other'],
+  sms: [
+    'lookalike_domain',
+    'urgency_language',
+    'credential_request',
+    'payment_request',
+    'brand_or_grammar_error',
+    'other',
+  ],
+};
+
 export interface Indicator {
   type: IndicatorType;
   evidence: string;
