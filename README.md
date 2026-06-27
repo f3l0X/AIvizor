@@ -46,7 +46,7 @@ PLANNING.md
 ## Estado actual
 
 - [x] **Fase 0 — Scaffold.** Monorepo, docker-compose, FastAPI `/health`, Next.js base con i18n ES/EN, `.env.example`.
-- [ ] Fase 1 — Capa LLM (interfaz + provider mock).
+- [x] **Fase 1 — Capa LLM.** Interfaz `LLMProvider`, esquemas Pydantic, `MockProvider` (sin coste), `GeminiProvider`, `ClaudeProvider`, factory por env, tests. Documento de diseño en [docs/architecture/llm-layer.md](./docs/architecture/llm-layer.md).
 - [ ] Fase 2 — Analizador (backend).
 - [ ] Fase 3 — Seguridad: anti prompt-injection.
 - [ ] Fase 4 — Analizador (frontend).
