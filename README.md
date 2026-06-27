@@ -24,6 +24,14 @@ Dos módulos sobre un mismo motor de IA:
 
 ---
 
+## Demo
+
+![Demo de AIvizor — analizador y entrenador](./docs/demo.gif)
+
+> Salida real de IA (Gemini). Cómo se grabó / cómo regenerarla: [docs/DEMO.md](./docs/DEMO.md).
+
+---
+
 ## En 30 segundos
 
 ```

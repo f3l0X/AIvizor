@@ -13,7 +13,11 @@
 
 import { ApiError } from './api';
 
-export type TranslateFn = (key: string, values?: Record<string, unknown>) => string;
+// Laxa a propósito: el `t` de next-intl tiene una firma genérica compleja
+// (TranslationValues con overloads rich/markup). Solo usamos la forma
+// `(key, values) => string`, así que aceptamos cualquier `values` para que
+// el `t` de next-intl sea asignable a este tipo sin fricción.
+export type TranslateFn = (key: string, values?: Record<string, any>) => string;
 
 export function errorMessage(e: unknown, t: TranslateFn): string {
   if (e instanceof ApiError) {
