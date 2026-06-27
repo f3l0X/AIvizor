@@ -80,6 +80,8 @@
       "wrong": "✗ Wrong",
       "score": "Score {score}/100",
       "missed": "{count, plural, one {You missed this indicator} other {You missed # indicators}}",
+      "falsePositive": "{count, plural, one {You marked this indicator but it wasn't present} other {You marked # indicators that weren't present}}",
+      "falsePositiveExplain": "This pattern is not present in the analyzed content. Over-flagging is also an error: it makes you distrust legitimate emails.",
       "nextLevel": "Next (level {level})"
     },
     "error": {

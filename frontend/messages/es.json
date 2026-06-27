@@ -80,6 +80,8 @@
       "wrong": "✗ Incorrecto",
       "score": "Puntuación {score}/100",
       "missed": "{count, plural, one {Te escapó este indicador} other {Te escaparon # indicadores}}",
+      "falsePositive": "{count, plural, one {Marcaste este indicador pero no lo era} other {Marcaste # indicadores que no lo eran}}",
+      "falsePositiveExplain": "Este patrón no aparece en el contenido analizado. Marcar de más también es un error: te lleva a desconfiar de correos legítimos.",
       "nextLevel": "Siguiente (nivel {level})"
     },
     "error": {

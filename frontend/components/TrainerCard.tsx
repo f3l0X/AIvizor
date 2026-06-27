@@ -180,7 +180,11 @@ export function TrainerCard({
       )}
 
       {feedback && (
-        <FeedbackView feedback={feedback} onNext={onNext} />
+        <FeedbackView
+          feedback={feedback}
+          falsePositiveTypes={Array.from(marked).filter((t) => !trueTypes.has(t))}
+          onNext={onNext}
+        />
       )}
     </article>
   );
@@ -188,9 +192,11 @@ export function TrainerCard({
 
 function FeedbackView({
   feedback,
+  falsePositiveTypes,
   onNext,
 }: {
   feedback: TrainingFeedback;
+  falsePositiveTypes: string[];
   onNext: (nextDifficulty: Difficulty) => void;
 }) {
   const t = useTranslations('trainer');
@@ -228,6 +234,27 @@ function FeedbackView({
                   {ind.evidence}
                 </pre>
                 <p className="mt-1 text-slate-700 dark:text-slate-300">{ind.explanation}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {falsePositiveTypes.length > 0 && (
+        <div>
+          <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            {t('feedback.falsePositive', { count: falsePositiveTypes.length })}
+          </p>
+          <ul className="mt-2 space-y-2">
+            {falsePositiveTypes.map((type) => (
+              <li
+                key={type}
+                className="rounded-md border border-red-300 bg-red-50 p-3 text-sm dark:border-red-800 dark:bg-red-950/30"
+              >
+                <p className="font-semibold">{tInd(`type.${type}`)}</p>
+                <p className="mt-1 text-slate-700 dark:text-slate-300">
+                  {t('feedback.falsePositiveExplain')}
+                </p>
               </li>
             ))}
           </ul>
