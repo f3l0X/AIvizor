@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import hashlib
 from typing import TypeVar
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from pydantic import BaseModel
 
@@ -283,10 +283,12 @@ class MockProvider:
 
     @staticmethod
     def _mock_training_sample(user: str, language: Language) -> TrainingSample:
-        # Determinista: el id se deriva del input + timestamp truncado para que
-        # llamadas en bucle no colisionen pero sigan siendo reproducibles dentro
-        # de la misma "ráfaga" de tests.
-        sample_id = UUID(bytes=hashlib.sha256(user.encode("utf-8")).digest()[:16])
+        # Id aleatorio en cada llamada: cada "next" inserta una fila nueva en
+        # training_attempts (la deduplicación por contenido la decide el
+        # servicio/repo, no el LLM). Los tests que querían determinismo del
+        # contenido lo siguen teniendo porque el resto del sample sí depende
+        # del prompt.
+        sample_id = uuid4()
 
         # Inferimos la dificultad del propio prompt del usuario (lo monta el
         # servicio del trainer y siempre contiene "dificultad N" / "difficulty N").
