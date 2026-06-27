@@ -62,13 +62,16 @@ PLANNING.md
 - [x] **Fase 0 — Scaffold.** Monorepo, docker-compose, FastAPI `/health`, Next.js base con i18n ES/EN, `.env.example`.
 - [x] **Fase 1 — Capa LLM.** Interfaz `LLMProvider`, esquemas Pydantic, `MockProvider` (sin coste), `GeminiProvider`, `ClaudeProvider`, factory por env, tests. Documento de diseño en [docs/architecture/llm-layer.md](./docs/architecture/llm-layer.md).
 - [x] **Fase 2 — Analizador (backend).** `POST /api/analyze` con prompts ES/EN delimitados, repositorio inyectable (SQL + InMemory), persistencia en `analyses`, migración Alembic. Documento en [docs/architecture/analyzer.md](./docs/architecture/analyzer.md).
-- [ ] Fase 3 — Seguridad: anti prompt-injection.
+- [x] **Fase 3 — Seguridad: anti prompt-injection.** Defensa por capas (wrapper + detector + prompt endurecido + schema validado + coerción servidor) + suite de payloads. Documento en [docs/architecture/security.md](./docs/architecture/security.md).
 - [ ] Fase 4 — Analizador (frontend).
 - [ ] Fase 5 — Entrenador (backend + frontend).
 - [ ] Fase 6 — Pulido + demo + deploy.
 
 ## Seguridad
 
-El analizador ingiere contenido no confiable: la resistencia a *prompt injection* es un
-requisito de primera clase (delimitadores, salidas estructuradas validadas, tests
-dedicados). Detalle en §4 de [PLANNING.md](./PLANNING.md).
+El analizador ingiere contenido no confiable. La resistencia a *prompt injection* es
+un requisito de primera clase, no un parche: ver [docs/architecture/security.md](./docs/architecture/security.md)
+para la **defensa por capas** (wrapper que neutraliza delimitadores, detector
+de patrones conocidos para observabilidad, system prompt endurecido, validación
+estricta de salida vía esquema Pydantic, coerción de campos sensibles en servidor)
+y el catálogo de payloads cubiertos por la suite de tests.
