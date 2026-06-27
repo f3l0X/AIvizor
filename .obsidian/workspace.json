@@ -185,6 +185,8 @@
   },
   "active": "256d9b276fb9988e",
   "lastOpenFiles": [
+    "LICENSE",
+    "LICENSE.tmp.13504.d88049b6ad53",
     "frontend/components/TrainerCard.tsx.tmp.13504.d31b1f79363e",
     "frontend/components/TrainerCard.tsx.tmp.13504.16a04b27a2f8",
     "frontend/lib/types.ts.tmp.13504.6b773f31ac98",
@@ -195,8 +197,6 @@
     "frontend/components/TrainerCard.tsx.tmp.13504.4d3103da5f2d",
     "backend/tests/test_trainer_service.py.tmp.13504.bc5d0472207d",
     "frontend/components/TrainerCard.tsx.tmp.13504.6e38d95380a4",
-    "frontend/node_modules/dlv/package.json",
-    "frontend/node_modules/postcss-js/package.json",
     "docs/architecture/security.md",
     "docs/architecture/trainer.md",
     "docs/architecture/llm-layer.md",
