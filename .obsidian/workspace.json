@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "PLANNING.md",
+                "file": "docs/architecture/trainer.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "PLANNING"
+              "title": "trainer"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "PLANNING.md",
+                "file": "docs/architecture/trainer.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Enlaces entrantes de PLANNING"
+              "title": "Enlaces entrantes de trainer"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "PLANNING.md",
+                "file": "docs/architecture/trainer.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Enlaces salientes de PLANNING"
+              "title": "Enlaces salientes de trainer"
             }
           },
           {
@@ -156,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "PLANNING.md",
+                "file": "docs/architecture/trainer.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Esquema de PLANNING"
+              "title": "Esquema de trainer"
             }
           }
         ]
@@ -183,8 +183,11 @@
       "bases:Crear nueva base": false
     }
   },
-  "active": "a441c45d6ae0585c",
+  "active": "256d9b276fb9988e",
   "lastOpenFiles": [
+    "backend/app/llm/mock.py.tmp.13504.5fdc49bcff16",
+    "backend/app/llm/mock.py.tmp.13504.49b9bf2c6a9e",
+    "PLANNING.md",
     "frontend/node_modules/@formatjs/intl-localematcher/package.json",
     "frontend/components/TrainerCard.tsx.tmp.13504.4d3103da5f2d",
     "backend/tests/test_trainer_service.py.tmp.13504.bc5d0472207d",
@@ -194,14 +197,11 @@
     "frontend/node_modules/@jridgewell/resolve-uri/package.json",
     "frontend/node_modules/postcss-selector-parser/package.json",
     "frontend/node_modules/@jridgewell/trace-mapping/package.json",
-    "frontend/node_modules/@jridgewell/sourcemap-codec/package.json",
-    "frontend/node_modules/braces/package.json",
     "docs/architecture/security.md",
     "docs/architecture/trainer.md",
     "docs/architecture/llm-layer.md",
     "docs/architecture/analyzer.md",
     "README.md",
-    "PLANNING.md",
     "frontend/node_modules/strip-bom/readme.md",
     "frontend/node_modules/eslint/README.md",
     "frontend/node_modules/tailwindcss/CHANGELOG.md",

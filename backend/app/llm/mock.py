@@ -121,7 +121,12 @@ class MockProvider:
         difficulty = _infer_difficulty_from_prompt(user)
         input_type = _infer_input_type_from_prompt(user)
 
-        templates = _TEMPLATES[(difficulty, language)]
+        # Buscamos por (difficulty, language, input_type). Si no hay plantillas
+        # para esa terna, caemos al email del mismo idioma como red de seguridad.
+        templates = _TEMPLATES.get(
+            (difficulty, language, input_type),
+            _TEMPLATES[(difficulty, language, InputType.EMAIL)],
+        )
         tpl = random.choice(templates)  # noqa: S311  — randomness no criptográfica
 
         return TrainingSample(
@@ -691,15 +696,244 @@ _L5_EN = [
 ]
 
 
-_TEMPLATES: dict[tuple[Difficulty, Language], list[_T]] = {
-    (Difficulty.L1, Language.ES): _L1_ES,
-    (Difficulty.L1, Language.EN): _L1_EN,
-    (Difficulty.L2, Language.ES): _L2_ES,
-    (Difficulty.L2, Language.EN): _L2_EN,
-    (Difficulty.L3, Language.ES): _L3_ES,
-    (Difficulty.L3, Language.EN): _L3_EN,
-    (Difficulty.L4, Language.ES): _L4_ES,
-    (Difficulty.L4, Language.EN): _L4_EN,
-    (Difficulty.L5, Language.ES): _L5_ES,
-    (Difficulty.L5, Language.EN): _L5_EN,
+# === URL — pequeños catálogos por nivel/idioma. ===
+
+_URL_L1_ES = [
+    _T("http://bbva-seguridad-online.ru/verificar?cuenta=user", Verdict.PHISHING, [
+        _ind(IndicatorType.LOOKALIKE_DOMAIN, "bbva-seguridad-online.ru",
+             "Dominio falso con `.ru` haciéndose pasar por BBVA."),
+    ]),
+    _T("https://paypa1-login.com/account/verify", Verdict.PHISHING, [
+        _ind(IndicatorType.LOOKALIKE_DOMAIN, "paypa1-login.com",
+             "El '1' sustituye a la 'l' en 'paypal'. Truco de typosquatting clásico."),
+    ]),
+]
+
+_URL_L1_EN = [
+    _T("http://chase-security-online.ru/verify?account=user", Verdict.PHISHING, [
+        _ind(IndicatorType.LOOKALIKE_DOMAIN, "chase-security-online.ru",
+             "Fake `.ru` domain impersonating Chase."),
+    ]),
+    _T("https://paypa1-login.com/account/verify", Verdict.PHISHING, [
+        _ind(IndicatorType.LOOKALIKE_DOMAIN, "paypa1-login.com",
+             "'1' replacing 'l' in 'paypal'. Classic typosquatting."),
+    ]),
+]
+
+_URL_L3_ES = [
+    _T("https://correos-postal.com/seguimiento/ES829374", Verdict.PHISHING, [
+        _ind(IndicatorType.LOOKALIKE_DOMAIN, "correos-postal.com",
+             "Correos usa correos.es, no correos-postal.com."),
+    ]),
+    _T("https://amazon-pedidos-es.com/order/112-3829471", Verdict.PHISHING, [
+        _ind(IndicatorType.LOOKALIKE_DOMAIN, "amazon-pedidos-es.com",
+             "Amazon usa amazon.es, no este dominio."),
+    ]),
+]
+
+_URL_L3_EN = [
+    _T("https://usps-postal.com/tracking/US829374", Verdict.PHISHING, [
+        _ind(IndicatorType.LOOKALIKE_DOMAIN, "usps-postal.com",
+             "USPS uses usps.com, not usps-postal.com."),
+    ]),
+    _T("https://amazon-orders-us.com/order/112-3829471", Verdict.PHISHING, [
+        _ind(IndicatorType.LOOKALIKE_DOMAIN, "amazon-orders-us.com",
+             "Amazon uses amazon.com, not this domain."),
+    ]),
+]
+
+_URL_L5_ES = [
+    _T("https://dashboard.stripe.com/invoices/in_1OPQRSTUV", Verdict.LEGIT, []),
+    _T("https://github.com/settings/keys", Verdict.LEGIT, []),
+]
+
+_URL_L5_EN = [
+    _T("https://dashboard.stripe.com/invoices/in_1OPQRSTUV", Verdict.LEGIT, []),
+    _T("https://github.com/settings/keys", Verdict.LEGIT, []),
+]
+
+# === SMS — cortos, una o dos frases con enlace. ===
+
+_SMS_L1_ES = [
+    _T(
+        "Su cuenta ha sido BLOQUEADA. Verifike sus datos YA en "
+        "http://bbva-urgente.ru/login antes de 24h o se perdera.",
+        Verdict.PHISHING,
+        [
+            _ind(IndicatorType.LOOKALIKE_DOMAIN, "bbva-urgente.ru",
+                 "Dominio `.ru` haciéndose pasar por BBVA."),
+            _ind(IndicatorType.URGENCY_LANGUAGE, "BLOQUEADA ... YA ... antes de 24h",
+                 "Amenaza + plazo corto, patrón clásico de smishing."),
+            _ind(IndicatorType.BRAND_OR_GRAMMAR_ERROR, "Verifike ... perdera",
+                 "Faltas ortográficas obvias en un supuesto SMS bancario."),
+        ],
+    ),
+    _T(
+        "DGT: Tiene una multa pendiente. Pague antes del viernes en "
+        "dgt-multas.tk o el importe se DUPLICARA.",
+        Verdict.PHISHING,
+        [
+            _ind(IndicatorType.LOOKALIKE_DOMAIN, "dgt-multas.tk",
+                 "Dominio `.tk` no es de la DGT (sería dgt.es)."),
+            _ind(IndicatorType.URGENCY_LANGUAGE, "antes del viernes ... se DUPLICARA",
+                 "Amenaza de duplicar el importe para forzar el pago."),
+            _ind(IndicatorType.PAYMENT_REQUEST, "Pague antes del viernes",
+                 "Petición de pago por SMS — Administración Pública nunca lo haría así."),
+        ],
+    ),
+]
+
+_SMS_L1_EN = [
+    _T(
+        "Your account has been BLOCKED. Verfy your data NOW at "
+        "http://chase-urgent.ru/login within 24h or it will be lost.",
+        Verdict.PHISHING,
+        [
+            _ind(IndicatorType.LOOKALIKE_DOMAIN, "chase-urgent.ru",
+                 "`.ru` domain impersonating Chase."),
+            _ind(IndicatorType.URGENCY_LANGUAGE, "BLOCKED ... NOW ... within 24h",
+                 "Threat + short deadline, classic smishing pattern."),
+            _ind(IndicatorType.BRAND_OR_GRAMMAR_ERROR, "Verfy",
+                 "Obvious typo in a supposed bank SMS."),
+        ],
+    ),
+    _T(
+        "IRS: You have an unpaid fine. Pay before Friday at "
+        "irs-fines.tk or the amount will DOUBLE.",
+        Verdict.PHISHING,
+        [
+            _ind(IndicatorType.LOOKALIKE_DOMAIN, "irs-fines.tk",
+                 "`.tk` domain is not the IRS (would be irs.gov)."),
+            _ind(IndicatorType.URGENCY_LANGUAGE, "before Friday ... will DOUBLE",
+                 "Threat of doubling the amount to force payment."),
+            _ind(IndicatorType.PAYMENT_REQUEST, "Pay before Friday",
+                 "Payment request via SMS — government would never do this."),
+        ],
+    ),
+]
+
+_SMS_L3_ES = [
+    _T(
+        "Correos: Tu paquete está pendiente. Abona 1,99€ de gestión en "
+        "https://correos-postal.com/pagar para la nueva entrega.",
+        Verdict.PHISHING,
+        [
+            _ind(IndicatorType.LOOKALIKE_DOMAIN, "correos-postal.com",
+                 "Correos usa correos.es, no correos-postal.com."),
+            _ind(IndicatorType.PAYMENT_REQUEST, "Abona 1,99€ de gestión",
+                 "Micro-pago para 'desbloquear' un envío: patrón clásico de fraude."),
+        ],
+    ),
+    _T(
+        "Iberdrola: Factura pendiente de 47,32€. Evita el corte en "
+        "pago-clientes.net/iberdrola",
+        Verdict.PHISHING,
+        [
+            _ind(IndicatorType.LOOKALIKE_DOMAIN, "pago-clientes.net/iberdrola",
+                 "El dominio real es pago-clientes.net (Iberdrola no lo usa); "
+                 "el segmento /iberdrola es solo path, no autoridad."),
+            _ind(IndicatorType.PAYMENT_REQUEST, "Evita el corte",
+                 "Pago urgente bajo amenaza, sin posibilidad de verificar en la app."),
+        ],
+    ),
+]
+
+_SMS_L3_EN = [
+    _T(
+        "USPS: Your package is pending. Pay $1.99 handling at "
+        "https://usps-postal.com/pay for the new delivery.",
+        Verdict.PHISHING,
+        [
+            _ind(IndicatorType.LOOKALIKE_DOMAIN, "usps-postal.com",
+                 "USPS uses usps.com, not usps-postal.com."),
+            _ind(IndicatorType.PAYMENT_REQUEST, "Pay $1.99 handling",
+                 "Micro-payment to 'unlock' a delivery: classic fraud pattern."),
+        ],
+    ),
+    _T(
+        "ConEd: Unpaid bill $47.32. Avoid disconnection at "
+        "payment-clients.net/conedison",
+        Verdict.PHISHING,
+        [
+            _ind(IndicatorType.LOOKALIKE_DOMAIN, "payment-clients.net/conedison",
+                 "Real domain is payment-clients.net (Con Edison does not use it); "
+                 "/conedison is just path, not authority."),
+            _ind(IndicatorType.PAYMENT_REQUEST, "Avoid disconnection",
+                 "Urgent payment under threat, no way to verify in the official app."),
+        ],
+    ),
+]
+
+_SMS_L5_ES = [
+    _T(
+        "BBVA: Has recibido un Bizum de 50,00€ de Juan García. "
+        "Saldo disponible: 1.247,30€. Cód: B-829473",
+        Verdict.LEGIT,
+        [],
+    ),
+    _T(
+        "Tu pedido de El Corte Inglés #80239485 ya está en reparto. "
+        "Llegará hoy entre 16:00 y 20:00. Sin enlaces.",
+        Verdict.LEGIT,
+        [],
+    ),
+]
+
+_SMS_L5_EN = [
+    _T(
+        "Chase: You received a Zelle of $50.00 from John Smith. "
+        "Available balance: $1,247.30. Code: B-829473",
+        Verdict.LEGIT,
+        [],
+    ),
+    _T(
+        "Your Target order #80239485 is out for delivery. "
+        "It will arrive today between 4pm and 8pm. No links.",
+        Verdict.LEGIT,
+        [],
+    ),
+]
+
+
+# Niveles 2 y 4 reusan los catálogos contiguos para URL/SMS (más cortos, menos
+# margen para variar). Si en el futuro queremos contenido propio se reescriben
+# aquí sin tocar el resto.
+_TEMPLATES: dict[tuple[Difficulty, Language, InputType], list[_T]] = {
+    # Email — 3 plantillas por nivel × idioma (catálogo principal).
+    (Difficulty.L1, Language.ES, InputType.EMAIL): _L1_ES,
+    (Difficulty.L1, Language.EN, InputType.EMAIL): _L1_EN,
+    (Difficulty.L2, Language.ES, InputType.EMAIL): _L2_ES,
+    (Difficulty.L2, Language.EN, InputType.EMAIL): _L2_EN,
+    (Difficulty.L3, Language.ES, InputType.EMAIL): _L3_ES,
+    (Difficulty.L3, Language.EN, InputType.EMAIL): _L3_EN,
+    (Difficulty.L4, Language.ES, InputType.EMAIL): _L4_ES,
+    (Difficulty.L4, Language.EN, InputType.EMAIL): _L4_EN,
+    (Difficulty.L5, Language.ES, InputType.EMAIL): _L5_ES,
+    (Difficulty.L5, Language.EN, InputType.EMAIL): _L5_EN,
+
+    # URL — propio por nivel donde aporta variedad; el resto cae a URL del
+    # nivel más cercano vía look-up con fallback (no hace falta declarar
+    # explícitamente L2/L4 si comparten catálogo con L1/L3).
+    (Difficulty.L1, Language.ES, InputType.URL): _URL_L1_ES,
+    (Difficulty.L1, Language.EN, InputType.URL): _URL_L1_EN,
+    (Difficulty.L2, Language.ES, InputType.URL): _URL_L1_ES,
+    (Difficulty.L2, Language.EN, InputType.URL): _URL_L1_EN,
+    (Difficulty.L3, Language.ES, InputType.URL): _URL_L3_ES,
+    (Difficulty.L3, Language.EN, InputType.URL): _URL_L3_EN,
+    (Difficulty.L4, Language.ES, InputType.URL): _URL_L3_ES,
+    (Difficulty.L4, Language.EN, InputType.URL): _URL_L3_EN,
+    (Difficulty.L5, Language.ES, InputType.URL): _URL_L5_ES,
+    (Difficulty.L5, Language.EN, InputType.URL): _URL_L5_EN,
+
+    # SMS — mismo patrón.
+    (Difficulty.L1, Language.ES, InputType.SMS): _SMS_L1_ES,
+    (Difficulty.L1, Language.EN, InputType.SMS): _SMS_L1_EN,
+    (Difficulty.L2, Language.ES, InputType.SMS): _SMS_L1_ES,
+    (Difficulty.L2, Language.EN, InputType.SMS): _SMS_L1_EN,
+    (Difficulty.L3, Language.ES, InputType.SMS): _SMS_L3_ES,
+    (Difficulty.L3, Language.EN, InputType.SMS): _SMS_L3_EN,
+    (Difficulty.L4, Language.ES, InputType.SMS): _SMS_L3_ES,
+    (Difficulty.L4, Language.EN, InputType.SMS): _SMS_L3_EN,
+    (Difficulty.L5, Language.ES, InputType.SMS): _SMS_L5_ES,
+    (Difficulty.L5, Language.EN, InputType.SMS): _SMS_L5_EN,
 }
