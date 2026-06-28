@@ -184,6 +184,9 @@ docker compose exec backend alembic upgrade head
 - Backend  → http://localhost:8000/health
 - OpenAPI  → http://localhost:8000/docs
 
+> ¿Cómo se usa? Guía paso a paso de los dos módulos, cuentas, BYOK y panel admin
+> en el **[Manual de uso](./docs/MANUAL.md)**.
+
 Prueba directamente la API:
 
 ```bash
