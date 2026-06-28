@@ -53,11 +53,15 @@ export function SessionNav() {
 
   return (
     <div className="flex items-center gap-2">
-      {/* Anticipo de Fase 7.5 (panel admin): distintivo de rol junto al email. */}
+      {/* El distintivo de admin enlaza al panel de gestión (Fase 7.5). */}
       {user?.role === 'admin' && (
-        <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand dark:bg-brand/20">
+        <Link
+          href={`/${locale}/admin`}
+          title={t('adminPanel')}
+          className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand transition hover:bg-brand/20 dark:bg-brand/20 dark:hover:bg-brand/30"
+        >
           {t('adminBadge')}
-        </span>
+        </Link>
       )}
       <Link
         href={`/${locale}/settings`}

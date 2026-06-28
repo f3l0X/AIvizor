@@ -198,6 +198,14 @@ class UserRepository(Protocol):
 
     async def get_by_id(self, user_id: UUID) -> UserInDB | None: ...
 
+    async def list_all(self) -> list[UserInDB]: ...
+
+    async def update(
+        self, user_id: UUID, *, is_active: bool | None = None, role: Role | None = None
+    ) -> UserInDB | None: ...
+
+    async def delete(self, user_id: UUID) -> bool: ...
+
 
 class SqlUserRepository:
     """Implementación sobre SQLAlchemy async."""
@@ -220,6 +228,35 @@ class SqlUserRepository:
     async def get_by_id(self, user_id: UUID) -> UserInDB | None:
         row = await self._session.get(User, user_id)
         return UserInDB.model_validate(row) if row is not None else None
+
+    async def list_all(self) -> list[UserInDB]:
+        stmt = select(User).order_by(User.created_at)
+        rows = (await self._session.execute(stmt)).scalars().all()
+        return [UserInDB.model_validate(r) for r in rows]
+
+    async def update(
+        self, user_id: UUID, *, is_active: bool | None = None, role: Role | None = None
+    ) -> UserInDB | None:
+        row = await self._session.get(User, user_id)
+        if row is None:
+            return None
+        if is_active is not None:
+            row.is_active = is_active
+        if role is not None:
+            row.role = role.value
+        await self._session.commit()
+        await self._session.refresh(row)
+        return UserInDB.model_validate(row)
+
+    async def delete(self, user_id: UUID) -> bool:
+        # La FK de user_api_keys es ON DELETE CASCADE: borrar el usuario arrastra
+        # su clave BYOK a nivel de BD (ver migración 0004).
+        row = await self._session.get(User, user_id)
+        if row is None:
+            return False
+        await self._session.delete(row)
+        await self._session.commit()
+        return True
 
 
 class InMemoryUserRepository:
@@ -245,6 +282,24 @@ class InMemoryUserRepository:
 
     async def get_by_id(self, user_id: UUID) -> UserInDB | None:
         return self.users.get(user_id)
+
+    async def list_all(self) -> list[UserInDB]:
+        return sorted(self.users.values(), key=lambda u: u.created_at)
+
+    async def update(
+        self, user_id: UUID, *, is_active: bool | None = None, role: Role | None = None
+    ) -> UserInDB | None:
+        user = self.users.get(user_id)
+        if user is None:
+            return None
+        if is_active is not None:
+            user.is_active = is_active
+        if role is not None:
+            user.role = role
+        return user
+
+    async def delete(self, user_id: UUID) -> bool:
+        return self.users.pop(user_id, None) is not None
 
 
 # ---------------------------------------------------------------------------

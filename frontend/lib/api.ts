@@ -21,6 +21,7 @@ import type {
   TrainingFeedback,
   TrainingNextRequest,
   TrainingSamplePublic,
+  UserAdminUpdate,
   UserPublic,
 } from './types';
 
@@ -185,6 +186,46 @@ export async function putApiKey(req: ApiKeyCreate): Promise<ApiKeyPublic> {
 
 export async function deleteApiKey(): Promise<void> {
   const r = await fetch(`${API_URL}/api/keys`, {
+    method: 'DELETE',
+    cache: 'no-store',
+    credentials: 'include',
+  });
+  if (!r.ok) throw await parseError(r);
+}
+
+// ---------------------------------------------------------------------------
+// Admin (Fase 7.5)
+//
+// Requieren sesión de administrador (401 sin login, 403 si no es admin). El
+// backend impide que un admin se modifique/borre a sí mismo (400).
+// ---------------------------------------------------------------------------
+
+export async function adminListUsers(): Promise<UserPublic[]> {
+  const r = await fetch(`${API_URL}/api/admin/users`, {
+    cache: 'no-store',
+    credentials: 'include',
+  });
+  if (!r.ok) throw await parseError(r);
+  return r.json();
+}
+
+export async function adminUpdateUser(
+  userId: string,
+  patch: UserAdminUpdate,
+): Promise<UserPublic> {
+  const r = await fetch(`${API_URL}/api/admin/users/${userId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    cache: 'no-store',
+    credentials: 'include',
+    body: JSON.stringify(patch),
+  });
+  if (!r.ok) throw await parseError(r);
+  return r.json();
+}
+
+export async function adminDeleteUser(userId: string): Promise<void> {
+  const r = await fetch(`${API_URL}/api/admin/users/${userId}`, {
     method: 'DELETE',
     cache: 'no-store',
     credentials: 'include',

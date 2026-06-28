@@ -135,6 +135,13 @@ export interface LoginRequest {
   password: string;
 }
 
+/** Cambios que un admin aplica a otra cuenta (PATCH parcial). Espejo de
+ * `UserAdminUpdate`: solo se envía lo que cambia. */
+export interface UserAdminUpdate {
+  is_active?: boolean;
+  role?: Role;
+}
+
 // ---------------------------------------------------------------------------
 // BYOK — Bring Your Own Key (Fase 7.3 backend / 7.4 frontend)
 //

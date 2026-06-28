@@ -61,3 +61,14 @@ class UserPublic(BaseModel):
     role: Role
     is_active: bool
     created_at: datetime
+
+
+class UserAdminUpdate(BaseModel):
+    """Cambios que un admin aplica a OTRA cuenta desde el panel (Fase 7.5).
+
+    Semántica PATCH: solo se modifica el campo que viene; ``None`` = no tocar.
+    Permite activar/desactivar (``is_active``) y cambiar de rol (``role``).
+    """
+
+    is_active: bool | None = None
+    role: Role | None = None
