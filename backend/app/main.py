@@ -1,4 +1,6 @@
+import asyncio
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,9 +16,27 @@ from app.db.repositories import SqlUserRepository
 from app.db.session import session_scope
 from app.services.auth import ensure_admin
 
+# backend/ (raíz del proyecto Python): donde vive alembic.ini.
+_BACKEND_ROOT = Path(__file__).resolve().parent.parent
+
+
+def _run_migrations() -> None:
+    """Aplica `alembic upgrade head` de forma síncrona (Alembic usa driver sync)."""
+    from alembic import command
+    from alembic.config import Config
+
+    cfg = Config(str(_BACKEND_ROOT / "alembic.ini"))
+    cfg.set_main_option("script_location", str(_BACKEND_ROOT / "alembic"))
+    command.upgrade(cfg, "head")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Migraciones al arrancar (opt-out con AUTO_MIGRATE=false). Alembic es síncrono,
+    # así que lo corremos en un hilo para no bloquear el event loop.
+    if settings.auto_migrate:
+        await asyncio.to_thread(_run_migrations)
+
     # Siembra del admin inicial (idempotente). No hace nada si ADMIN_EMAIL/PASSWORD
     # están vacíos — caso por defecto en tests, que así no tocan la BD.
     if settings.admin_email and settings.admin_password:

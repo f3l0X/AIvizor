@@ -19,9 +19,14 @@ from app.db.repositories import (
     InMemoryTrainingAttemptRepository,
     InMemoryUserRepository,
 )
+from app.config import settings
 from app.llm.base import LLMProvider
 from app.llm.mock import MockProvider
 from app.main import app
+
+# Los tests arrancan el lifespan vía TestClient pero no tienen Postgres: que no
+# intente aplicar migraciones (Alembic se prueba aparte / en integración).
+settings.auto_migrate = False
 
 
 @pytest.fixture

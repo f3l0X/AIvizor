@@ -15,6 +15,11 @@ class Settings(BaseSettings):
 
     database_url: str = "postgresql+psycopg://aivizor:aivizor@db:5432/aivizor"
 
+    # Aplica las migraciones de Alembic (`upgrade head`) al arrancar. Cómodo en
+    # desarrollo; en producción se suele desactivar (=False) y aplicarlas como paso
+    # explícito de despliegue.
+    auto_migrate: bool = True
+
     backend_cors_origins: str = "http://localhost:3000"
 
     # --- Auth (Fase 7.2) ---
