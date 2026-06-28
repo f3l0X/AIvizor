@@ -35,3 +35,6 @@ yarn-debug.log*
 
 # Docker
 *.pid
+
+# Obsidian (estado de la UI por máquina; la config estable sí se versiona)
+.obsidian/workspace.json
