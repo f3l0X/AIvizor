@@ -41,6 +41,11 @@ El usuario pega un correo, una URL o un SMS sospechoso. El sistema responde con 
 - Sin multi-tenant, sin panel de compliance, sin envío real de campañas.
 - Sin cuentas/login complejas: persistencia mínima, anónima o por sesión.
 
+> **Actualización (Fase 7).** Las dos últimas líneas se revirtieron de forma
+> consciente: el proyecto incorporó cuentas multi-usuario, BYOK y panel admin
+> como capa **opt-in** sobre la demo anónima (que sigue funcionando sin login).
+> El compliance/campañas sí se mantiene fuera. Ver §7 (Fase 7).
+
 ---
 
 ## 2. Stack
@@ -200,6 +205,12 @@ aivizor/
 - **Fase 5 — Entrenador (backend + frontend).** Generación, clasificación, feedback,
   dificultad adaptativa.
 - **Fase 6 — Pulido + demo.** README con narrativa, GIF de demo, deploy en Hetzner.
+- **Fase 7 — Multi-usuario + BYOK + admin.** *Giro consciente respecto al anti-scope
+  de §1 (ver nota allí).* Cuentas opt-in sobre la demo anónima:
+  - **7.2 — Auth.** Registro/login/sesión por JWT en cookie httpOnly; roles. → [doc](docs/architecture/auth.md)
+  - **7.3 — BYOK.** Clave de LLM por usuario, cifrada en reposo (Fernet). → [doc](docs/architecture/byok.md)
+  - **7.4 — Frontend de auth.** Login, registro y ajustes BYOK. → [doc](docs/architecture/frontend-auth.md)
+  - **7.5 — Panel admin.** Gestión de usuarios con auto-protección. → [doc](docs/architecture/admin.md)
 
 ---
 

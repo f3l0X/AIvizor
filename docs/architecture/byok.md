@@ -87,5 +87,7 @@ ahora resolutiva:
 
 - **Validar la clave contra el provider** al guardarla (un ping real). Omitido en v1
   para mantener los tests offline; sería un `POST /api/keys/test`.
-- Frontend: pantalla de ajustes para gestionar la clave (parte del login en el front).
 - Posible soporte de varias claves por usuario (hoy: una activa).
+
+> El frontend de gestión de la clave (pantalla de ajustes) se implementó en la
+> Fase 7.4 — ver [frontend-auth.md](frontend-auth.md).

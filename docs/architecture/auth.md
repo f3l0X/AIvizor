@@ -1,7 +1,9 @@
 # Autenticación — multi-usuario con JWT en cookie httpOnly
 
 > Estado: implementada en Fase 7.2 (backend).
-> Tests: `backend/tests/test_auth_api.py` (18 tests). Suite total: 106 verdes.
+> Tests: `backend/tests/test_auth_api.py` (18 tests).
+> Relacionado: [byok.md](byok.md) (7.3), [frontend-auth.md](frontend-auth.md) (7.4),
+> [admin.md](admin.md) (7.5).
 
 AIvizor v1 era anónimo (sin login). La Fase 7 introduce **multi-usuario completo**
 (registro público, login, roles) como base para BYOK por usuario (Fase 7.3) y el
