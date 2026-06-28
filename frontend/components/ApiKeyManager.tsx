@@ -55,7 +55,19 @@ export function ApiKeyManager() {
     try {
       const key = await getApiKey();
       setCurrent(key);
+      // Pre-rellena el formulario con la última configuración guardada para que,
+      // al volver, se muestre tal cual la dejó el usuario. La API key en sí no se
+      // puede pre-rellenar (solo conocemos su máscara): se reintroduce al cambiarla.
       setProvider(key.provider);
+      if (key.model) {
+        setModel(key.model);
+        // Si el modelo guardado no está en la lista del proveedor, modo personalizado.
+        const presets = BYOK_MODELS_BY_PROVIDER[key.provider].map((m) => m.id);
+        setCustomModel(!presets.includes(key.model));
+      } else {
+        setModel('');
+        setCustomModel(false);
+      }
     } catch (e) {
       // 404 = el usuario aún no configuró ninguna clave: estado válido, no error.
       if (e instanceof ApiError && e.status === 404) {
