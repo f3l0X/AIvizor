@@ -6,6 +6,14 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "--prefix", "frontend"],
       "port": 3000
+    },
+    {
+      "name": "frontend-3001",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["next", "dev", "-p", "3001"],
+      "cwd": "frontend",
+      "port": 3001,
+      "autoPort": false
     }
   ]
 }

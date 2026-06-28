@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
+import { AuthProvider } from '../../components/AuthProvider';
 import { Header } from '../../components/Header';
 import { locales, type Locale } from '../../i18n';
 import { themeInitScript } from '../../lib/theme';
@@ -33,8 +34,10 @@ export default async function LocaleLayout({
       </head>
       <body className="min-h-screen bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
         <NextIntlClientProvider messages={messages}>
-          <Header />
-          {children}
+          <AuthProvider>
+            <Header />
+            {children}
+          </AuthProvider>
         </NextIntlClientProvider>
       </body>
     </html>

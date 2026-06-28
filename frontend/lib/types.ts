@@ -106,3 +106,57 @@ export interface TrainingFeedback {
   explanation: string;
   next_difficulty: Difficulty;
 }
+
+// ---------------------------------------------------------------------------
+// Auth (Fase 7.2 backend / 7.4 frontend)
+//
+// Espejo de backend/app/schemas/auth.py. La sesión vive en una cookie httpOnly
+// (`access_token`) que el frontend NO manipula: basta con credentials:'include'.
+// ---------------------------------------------------------------------------
+
+export type Role = 'user' | 'admin';
+
+/** Vista pública del usuario (sin contraseña ni hash). Espejo de `UserPublic`. */
+export interface UserPublic {
+  id: string;
+  email: string;
+  role: Role;
+  is_active: boolean;
+  created_at: string; // ISO 8601
+}
+
+export interface RegisterRequest {
+  email: string;
+  password: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+// ---------------------------------------------------------------------------
+// BYOK — Bring Your Own Key (Fase 7.3 backend / 7.4 frontend)
+//
+// Espejo de backend/app/schemas/byok.py. El `mock` no admite BYOK: el provider
+// se restringe a gemini/claude. La clave en claro SOLO se envía (PUT); cualquier
+// lectura devuelve la máscara (`••••wxyz`).
+// ---------------------------------------------------------------------------
+
+export type ByokProvider = 'gemini' | 'claude';
+
+/** Alta/reemplazo de la clave. `model` opcional (default del provider). */
+export interface ApiKeyCreate {
+  provider: ByokProvider;
+  api_key: string;
+  model?: string | null;
+}
+
+/** Vista pública de la clave: nunca la clave en claro, solo su máscara. */
+export interface ApiKeyPublic {
+  provider: ByokProvider;
+  model: string | null;
+  masked_key: string;
+  created_at: string; // ISO 8601
+  updated_at: string; // ISO 8601
+}

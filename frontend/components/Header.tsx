@@ -1,9 +1,8 @@
 /**
  * Cabecera global: marca + navegación + selector de idioma + toggle de tema.
  *
- * El bloque de la derecha (`actions`) está pensado para crecer: en Fase 7.4 se
- * añadirá aquí el estado de sesión (usuario / login / logout) junto a los
- * selectores de idioma y tema.
+ * El bloque de la derecha reúne el estado de sesión (Fase 7.4: usuario / login /
+ * logout, vía `SessionNav`) junto a los selectores de idioma y tema.
  */
 
 'use client';
@@ -13,6 +12,7 @@ import { usePathname } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 
 import { LanguageSwitcher } from './LanguageSwitcher';
+import { SessionNav } from './SessionNav';
 import { ThemeToggle } from './ThemeToggle';
 
 export function Header() {
@@ -55,7 +55,8 @@ export function Header() {
         <div className="flex items-center gap-2">
           <LanguageSwitcher />
           <ThemeToggle />
-          {/* Fase 7.4: aquí irá el estado de sesión (usuario / login / logout). */}
+          <span className="mx-1 hidden h-5 w-px bg-slate-200 dark:bg-slate-800 sm:block" />
+          <SessionNav />
         </div>
       </div>
     </header>

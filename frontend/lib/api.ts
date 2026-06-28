@@ -4,15 +4,24 @@
  * - `API_URL` viene de NEXT_PUBLIC_API_URL (configurable por entorno).
  * - Errores se exponen como `ApiError` para que la UI distinga 4xx (input del
  *   usuario) de 5xx (problema del backend / LLM provider).
+ * - TODAS las peticiones van con `credentials: 'include'`: la sesión vive en una
+ *   cookie httpOnly (`access_token`) que el navegador adjunta sola. Analyzer y
+ *   Trainer también la envían para que el backend resuelva la clave BYOK del
+ *   usuario logueado (si la tiene); el anónimo sigue funcionando sin cookie.
  */
 
 import type {
   AnalysisResult,
   AnalyzeRequest,
+  ApiKeyCreate,
+  ApiKeyPublic,
+  LoginRequest,
+  RegisterRequest,
   TrainingAnswer,
   TrainingFeedback,
   TrainingNextRequest,
   TrainingSamplePublic,
+  UserPublic,
 } from './types';
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
@@ -55,7 +64,7 @@ export async function getHealth(): Promise<{
   version: string;
   llm_provider: string;
 }> {
-  const r = await fetch(`${API_URL}/health`, { cache: 'no-store' });
+  const r = await fetch(`${API_URL}/health`, { cache: 'no-store', credentials: 'include' });
   if (!r.ok) throw await parseError(r);
   return r.json();
 }
@@ -65,6 +74,7 @@ export async function analyze(req: AnalyzeRequest): Promise<AnalysisResult> {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     cache: 'no-store',
+    credentials: 'include',
     body: JSON.stringify(req),
   });
   if (!r.ok) throw await parseError(r);
@@ -76,6 +86,7 @@ export async function trainNext(req: TrainingNextRequest): Promise<TrainingSampl
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     cache: 'no-store',
+    credentials: 'include',
     body: JSON.stringify(req),
   });
   if (!r.ok) throw await parseError(r);
@@ -87,8 +98,96 @@ export async function trainAnswer(answer: TrainingAnswer): Promise<TrainingFeedb
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     cache: 'no-store',
+    credentials: 'include',
     body: JSON.stringify(answer),
   });
   if (!r.ok) throw await parseError(r);
   return r.json();
+}
+
+// ---------------------------------------------------------------------------
+// Auth (Fase 7.4)
+//
+// register/login dejan la cookie httpOnly en la respuesta y devuelven UserPublic.
+// getMe() recupera la sesión actual: 401 si no hay (lo traducimos a null arriba,
+// en el AuthProvider, no aquí — aquí 401 es un ApiError como cualquier otro).
+// ---------------------------------------------------------------------------
+
+export async function register(req: RegisterRequest): Promise<UserPublic> {
+  const r = await fetch(`${API_URL}/api/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    cache: 'no-store',
+    credentials: 'include',
+    body: JSON.stringify(req),
+  });
+  if (!r.ok) throw await parseError(r);
+  return r.json();
+}
+
+export async function login(req: LoginRequest): Promise<UserPublic> {
+  const r = await fetch(`${API_URL}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    cache: 'no-store',
+    credentials: 'include',
+    body: JSON.stringify(req),
+  });
+  if (!r.ok) throw await parseError(r);
+  return r.json();
+}
+
+export async function logout(): Promise<void> {
+  const r = await fetch(`${API_URL}/api/auth/logout`, {
+    method: 'POST',
+    cache: 'no-store',
+    credentials: 'include',
+  });
+  if (!r.ok) throw await parseError(r);
+}
+
+export async function getMe(): Promise<UserPublic> {
+  const r = await fetch(`${API_URL}/api/auth/me`, {
+    cache: 'no-store',
+    credentials: 'include',
+  });
+  if (!r.ok) throw await parseError(r);
+  return r.json();
+}
+
+// ---------------------------------------------------------------------------
+// BYOK (Fase 7.4)
+//
+// getApiKey() devuelve 404 si el usuario no tiene clave configurada: el llamante
+// debe tratar 404 como "sin clave", no como error. putApiKey() hace upsert.
+// ---------------------------------------------------------------------------
+
+export async function getApiKey(): Promise<ApiKeyPublic> {
+  const r = await fetch(`${API_URL}/api/keys`, {
+    cache: 'no-store',
+    credentials: 'include',
+  });
+  if (!r.ok) throw await parseError(r);
+  return r.json();
+}
+
+export async function putApiKey(req: ApiKeyCreate): Promise<ApiKeyPublic> {
+  const r = await fetch(`${API_URL}/api/keys`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    cache: 'no-store',
+    credentials: 'include',
+    body: JSON.stringify(req),
+  });
+  if (!r.ok) throw await parseError(r);
+  return r.json();
+}
+
+export async function deleteApiKey(): Promise<void> {
+  const r = await fetch(`${API_URL}/api/keys`, {
+    method: 'DELETE',
+    cache: 'no-store',
+    credentials: 'include',
+  });
+  if (!r.ok) throw await parseError(r);
 }

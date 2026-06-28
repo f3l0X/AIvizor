@@ -1,6 +1,8 @@
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 
+import { HomeAuthCta } from '../../components/HomeAuthCta';
+
 export default function HomePage() {
   const t = useTranslations('home');
 
@@ -29,6 +31,8 @@ export default function HomePage() {
           </p>
         </Link>
       </div>
+
+      <HomeAuthCta />
     </main>
   );
 }

@@ -10,6 +10,83 @@
       "toLight": "Switch to light theme"
     }
   },
+  "auth": {
+    "nav": {
+      "login": "Sign in",
+      "register": "Sign up",
+      "logout": "Sign out",
+      "settings": "Account settings",
+      "adminBadge": "Admin"
+    },
+    "form": {
+      "email": "Email",
+      "password": "Password",
+      "passwordHint": "At least 8 characters."
+    },
+    "login": {
+      "title": "Sign in",
+      "subtitle": "Sign in to use your own AI key for analysis and training.",
+      "submit": "Sign in",
+      "submitting": "Signing in...",
+      "switchPrompt": "Don't have an account yet?",
+      "switchLink": "Create one"
+    },
+    "register": {
+      "title": "Create account",
+      "subtitle": "Sign up to bring your own AI key and spend your quota, not the server's.",
+      "submit": "Create account",
+      "submitting": "Creating...",
+      "switchPrompt": "Already have an account?",
+      "switchLink": "Sign in"
+    },
+    "error": {
+      "generic": "The server returned an error. Please try again.",
+      "network": "Could not reach the backend. Is it running on localhost:8000?",
+      "client": "{detail}",
+      "server": "The server failed: {detail}. Try again in a few seconds."
+    }
+  },
+  "settings": {
+    "loading": "Loading...",
+    "title": "Settings",
+    "subtitle": "Manage your account and your AI key.",
+    "account": {
+      "title": "Account",
+      "email": "Email",
+      "role": "Role",
+      "roles": {
+        "user": "User",
+        "admin": "Administrator"
+      }
+    },
+    "byok": {
+      "title": "Your AI key (BYOK)",
+      "description": "Bring your own Gemini or Claude key. Analysis and training will spend your quota. If you don't set one, the server's provider is used.",
+      "loading": "Loading configuration...",
+      "none": "No key configured. The server's provider is used.",
+      "saved": "Key saved. Your account will be used from now on.",
+      "deleted": "Key removed. You're back on the server's provider.",
+      "delete": "Remove",
+      "addTitle": "Set up key",
+      "replaceTitle": "Replace key",
+      "providerLabel": "Provider",
+      "modelLabel": "Model (optional)",
+      "modelPlaceholder": "Provider default",
+      "keyLabel": "API key",
+      "keyPlaceholder": "Paste your key here (it won't be shown again)",
+      "save": "Save key",
+      "provider": {
+        "gemini": "Gemini",
+        "claude": "Claude"
+      },
+      "error": {
+        "generic": "The server returned an error. Please try again.",
+        "network": "Could not reach the backend. Is it running on localhost:8000?",
+        "client": "Key rejected: {detail}",
+        "server": "The server failed: {detail}. Try again in a few seconds."
+      }
+    }
+  },
   "home": {
     "tagline": "See the phish before it bites.",
     "analyzer": {
@@ -19,6 +96,13 @@
     "trainer": {
       "title": "Trainer",
       "description": "Practice with AI-generated samples. Learn to spot the indicators yourself."
+    },
+    "cta": {
+      "prompt": "Create an account to use your own AI key (Gemini or Claude) and spend your quota, not the server's.",
+      "register": "Create account",
+      "login": "Sign in",
+      "signedInAs": "Signed in as {email}.",
+      "manageAccount": "Manage account"
     }
   },
   "analyzer": {

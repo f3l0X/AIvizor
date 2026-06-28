@@ -10,6 +10,83 @@
       "toLight": "Cambiar a tema claro"
     }
   },
+  "auth": {
+    "nav": {
+      "login": "Entrar",
+      "register": "Crear cuenta",
+      "logout": "Salir",
+      "settings": "Ajustes de la cuenta",
+      "adminBadge": "Admin"
+    },
+    "form": {
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "passwordHint": "Mínimo 8 caracteres."
+    },
+    "login": {
+      "title": "Iniciar sesión",
+      "subtitle": "Entra para usar tu propia clave de IA en el análisis y el entrenamiento.",
+      "submit": "Entrar",
+      "submitting": "Entrando...",
+      "switchPrompt": "¿Aún no tienes cuenta?",
+      "switchLink": "Crea una"
+    },
+    "register": {
+      "title": "Crear cuenta",
+      "subtitle": "Regístrate para aportar tu propia clave de IA y consumir tu cuota, no la del servidor.",
+      "submit": "Crear cuenta",
+      "submitting": "Creando...",
+      "switchPrompt": "¿Ya tienes cuenta?",
+      "switchLink": "Inicia sesión"
+    },
+    "error": {
+      "generic": "El servidor devolvió un error. Inténtalo de nuevo.",
+      "network": "No se pudo conectar con el backend. ¿Está corriendo en localhost:8000?",
+      "client": "{detail}",
+      "server": "El servidor falló: {detail}. Reintenta en unos segundos."
+    }
+  },
+  "settings": {
+    "loading": "Cargando...",
+    "title": "Ajustes",
+    "subtitle": "Gestiona tu cuenta y tu clave de IA.",
+    "account": {
+      "title": "Cuenta",
+      "email": "Correo",
+      "role": "Rol",
+      "roles": {
+        "user": "Usuario",
+        "admin": "Administrador"
+      }
+    },
+    "byok": {
+      "title": "Tu clave de IA (BYOK)",
+      "description": "Aporta tu propia clave de Gemini o Claude. El análisis y el entrenamiento consumirán tu cuota. Si no configuras ninguna, se usa la del servidor.",
+      "loading": "Cargando configuración...",
+      "none": "No tienes ninguna clave configurada. Se usa el proveedor del servidor.",
+      "saved": "Clave guardada. A partir de ahora se usará tu cuenta.",
+      "deleted": "Clave eliminada. Vuelves al proveedor del servidor.",
+      "delete": "Eliminar",
+      "addTitle": "Configurar clave",
+      "replaceTitle": "Reemplazar clave",
+      "providerLabel": "Proveedor",
+      "modelLabel": "Modelo (opcional)",
+      "modelPlaceholder": "Por defecto del proveedor",
+      "keyLabel": "API key",
+      "keyPlaceholder": "Pega aquí tu clave (no se vuelve a mostrar)",
+      "save": "Guardar clave",
+      "provider": {
+        "gemini": "Gemini",
+        "claude": "Claude"
+      },
+      "error": {
+        "generic": "El servidor devolvió un error. Inténtalo de nuevo.",
+        "network": "No se pudo conectar con el backend. ¿Está corriendo en localhost:8000?",
+        "client": "Clave rechazada: {detail}",
+        "server": "El servidor falló: {detail}. Reintenta en unos segundos."
+      }
+    }
+  },
   "home": {
     "tagline": "Tu ojo avizor contra el phishing.",
     "analyzer": {
@@ -19,6 +96,13 @@
     "trainer": {
       "title": "Entrenador",
       "description": "Practica con ejemplos generados por IA. Aprende a detectar los indicadores tú mismo."
+    },
+    "cta": {
+      "prompt": "Crea una cuenta para usar tu propia clave de IA (Gemini o Claude) y consumir tu cuota, no la del servidor.",
+      "register": "Crear cuenta",
+      "login": "Iniciar sesión",
+      "signedInAs": "Has iniciado sesión como {email}.",
+      "manageAccount": "Gestionar cuenta"
     }
   },
   "analyzer": {
