@@ -10,10 +10,12 @@ from fastapi.testclient import TestClient
 from app.api.analyze import get_analysis_repo
 from app.api.analyze import get_llm as get_analyzer_llm
 from app.api.auth import get_user_repo
+from app.api.keys import get_api_key_repo
 from app.api.train import get_llm as get_trainer_llm
 from app.api.train import get_training_repo
 from app.db.repositories import (
     InMemoryAnalysisRepository,
+    InMemoryApiKeyRepository,
     InMemoryTrainingAttemptRepository,
     InMemoryUserRepository,
 )
@@ -43,11 +45,17 @@ def in_memory_user_repo() -> InMemoryUserRepository:
 
 
 @pytest.fixture
+def in_memory_api_key_repo() -> InMemoryApiKeyRepository:
+    return InMemoryApiKeyRepository()
+
+
+@pytest.fixture
 def client(
     mock_provider: LLMProvider,
     in_memory_repo: InMemoryAnalysisRepository,
     in_memory_training_repo: InMemoryTrainingAttemptRepository,
     in_memory_user_repo: InMemoryUserRepository,
+    in_memory_api_key_repo: InMemoryApiKeyRepository,
 ) -> Iterator[TestClient]:
     """TestClient con dependencies sobreescritas: sin red, sin BD."""
 
@@ -56,6 +64,7 @@ def client(
     app.dependency_overrides[get_analysis_repo] = lambda: in_memory_repo
     app.dependency_overrides[get_training_repo] = lambda: in_memory_training_repo
     app.dependency_overrides[get_user_repo] = lambda: in_memory_user_repo
+    app.dependency_overrides[get_api_key_repo] = lambda: in_memory_api_key_repo
 
     with TestClient(app) as c:
         yield c

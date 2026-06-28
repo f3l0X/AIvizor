@@ -33,6 +33,13 @@ class Settings(BaseSettings):
     admin_email: str = ""
     admin_password: str = ""
 
+    # --- BYOK (Fase 7.3) ---
+    # Las API keys de LLM que aporta cada usuario se cifran en reposo con Fernet
+    # (AES-128-CBC + HMAC). La clave DEBE cambiarse en producción y guardarse fuera
+    # del repo; este default solo permite arrancar en desarrollo. Genera una con:
+    #   python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+    byok_encryption_key: str = "x9clRcUs9p0gQoMG8iP3G8OctC3rfU5bmDzfIhyBpmQ="
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [o.strip() for o in self.backend_cors_origins.split(",") if o.strip()]

@@ -12,22 +12,41 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.repositories import SqlTrainingAttemptRepository, TrainingAttemptRepository
+from app.api.auth import get_current_user_optional
+from app.api.keys import get_api_key_repo
+from app.db.repositories import (
+    ApiKeyRepository,
+    SqlTrainingAttemptRepository,
+    TrainingAttemptRepository,
+)
 from app.db.session import get_db
 from app.llm.base import LLMError, LLMProvider
 from app.llm.factory import get_llm as _factory_get_llm
+from app.schemas.auth import UserInDB
 from app.schemas.training import (
     TrainingAnswer,
     TrainingFeedback,
     TrainingNextRequest,
     TrainingSamplePublic,
 )
+from app.services.byok import resolve_provider_for_user
 from app.services.trainer import evaluate_answer, generate_sample
 
 router = APIRouter(prefix="/api/train", tags=["trainer"])
 
 
-def get_llm() -> LLMProvider:
+async def get_llm(
+    user: UserInDB | None = Depends(get_current_user_optional),
+    api_key_repo: ApiKeyRepository = Depends(get_api_key_repo),
+) -> LLMProvider:
+    """Resuelve el provider: BYOK del usuario logueado, o el del servidor (anónimo)."""
+    if user is not None:
+        try:
+            byok = await resolve_provider_for_user(user.id, repo=api_key_repo)
+        except LLMError as e:
+            raise HTTPException(status.HTTP_502_BAD_GATEWAY, detail=str(e)) from e
+        if byok is not None:
+            return byok
     return _factory_get_llm()
 
 

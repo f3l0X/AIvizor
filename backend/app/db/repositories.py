@@ -19,9 +19,10 @@ from uuid import UUID, uuid4
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import Analysis, TrainingAttempt, User
+from app.db.models import Analysis, TrainingAttempt, User, UserApiKey
 from app.schemas.analysis import AnalysisResult
 from app.schemas.auth import Role, UserInDB
+from app.schemas.byok import StoredApiKey
 from app.schemas.common import InputType
 from app.schemas.training import TrainingAnswer, TrainingSample
 
@@ -246,14 +247,110 @@ class InMemoryUserRepository:
         return self.users.get(user_id)
 
 
+# ---------------------------------------------------------------------------
+# API keys de usuario (BYOK, Fase 7.3)
+# ---------------------------------------------------------------------------
+
+@runtime_checkable
+class ApiKeyRepository(Protocol):
+    """Persistencia de la clave BYOK. Opera siempre sobre el texto **cifrado**;
+    el cifrado/descifrado vive en el servicio ``byok``, no aquí.
+
+    Un usuario tiene como mucho una fila: ``upsert`` crea o reemplaza.
+    """
+
+    async def get(self, user_id: UUID) -> StoredApiKey | None: ...
+
+    async def upsert(
+        self, *, user_id: UUID, provider: str, api_key_encrypted: str, model: str | None
+    ) -> StoredApiKey: ...
+
+    async def delete(self, user_id: UUID) -> bool: ...
+
+
+class SqlApiKeyRepository:
+    """Implementación sobre SQLAlchemy async."""
+
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def get(self, user_id: UUID) -> StoredApiKey | None:
+        stmt = select(UserApiKey).where(UserApiKey.user_id == user_id)
+        row = (await self._session.execute(stmt)).scalar_one_or_none()
+        return StoredApiKey.model_validate(row) if row is not None else None
+
+    async def upsert(
+        self, *, user_id: UUID, provider: str, api_key_encrypted: str, model: str | None
+    ) -> StoredApiKey:
+        stmt = select(UserApiKey).where(UserApiKey.user_id == user_id)
+        row = (await self._session.execute(stmt)).scalar_one_or_none()
+        if row is None:
+            row = UserApiKey(
+                user_id=user_id,
+                provider=provider,
+                api_key_encrypted=api_key_encrypted,
+                model=model,
+            )
+            self._session.add(row)
+        else:
+            row.provider = provider
+            row.api_key_encrypted = api_key_encrypted
+            row.model = model
+        await self._session.commit()
+        await self._session.refresh(row)
+        return StoredApiKey.model_validate(row)
+
+    async def delete(self, user_id: UUID) -> bool:
+        stmt = select(UserApiKey).where(UserApiKey.user_id == user_id)
+        row = (await self._session.execute(stmt)).scalar_one_or_none()
+        if row is None:
+            return False
+        await self._session.delete(row)
+        await self._session.commit()
+        return True
+
+
+class InMemoryApiKeyRepository:
+    """Implementación en memoria para tests. Una entrada por usuario."""
+
+    def __init__(self) -> None:
+        self.keys: dict[UUID, StoredApiKey] = {}
+
+    async def get(self, user_id: UUID) -> StoredApiKey | None:
+        return self.keys.get(user_id)
+
+    async def upsert(
+        self, *, user_id: UUID, provider: str, api_key_encrypted: str, model: str | None
+    ) -> StoredApiKey:
+        existing = self.keys.get(user_id)
+        now = datetime.now(timezone.utc)
+        stored = StoredApiKey(
+            id=existing.id if existing else uuid4(),
+            user_id=user_id,
+            provider=provider,  # type: ignore[arg-type]
+            api_key_encrypted=api_key_encrypted,
+            model=model,
+            created_at=existing.created_at if existing else now,
+            updated_at=now,
+        )
+        self.keys[user_id] = stored
+        return stored
+
+    async def delete(self, user_id: UUID) -> bool:
+        return self.keys.pop(user_id, None) is not None
+
+
 # select se exporta porque algunos tests querrán construir queries; lo dejamos
 # aquí para evitar imports adicionales en otros módulos.
 __all__ = [
     "AnalysisRepository",
+    "ApiKeyRepository",
     "InMemoryAnalysisRepository",
+    "InMemoryApiKeyRepository",
     "InMemoryTrainingAttemptRepository",
     "InMemoryUserRepository",
     "SqlAnalysisRepository",
+    "SqlApiKeyRepository",
     "SqlTrainingAttemptRepository",
     "SqlUserRepository",
     "TrainingAttemptRepository",

@@ -9,18 +9,36 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.repositories import AnalysisRepository, SqlAnalysisRepository
+from app.api.auth import get_current_user_optional
+from app.api.keys import get_api_key_repo
+from app.db.repositories import AnalysisRepository, ApiKeyRepository, SqlAnalysisRepository
 from app.db.session import get_db
 from app.llm.base import LLMError, LLMProvider
 from app.llm.factory import get_llm as _factory_get_llm
 from app.schemas.analysis import AnalysisResult, AnalyzeRequest
+from app.schemas.auth import UserInDB
 from app.services.analyzer import analyze_content
+from app.services.byok import resolve_provider_for_user
 
 router = APIRouter(prefix="/api", tags=["analyzer"])
 
 
-def get_llm() -> LLMProvider:
-    """Dependency override-able en tests."""
+async def get_llm(
+    user: UserInDB | None = Depends(get_current_user_optional),
+    api_key_repo: ApiKeyRepository = Depends(get_api_key_repo),
+) -> LLMProvider:
+    """Resuelve el provider de la petición (override-able en tests).
+
+    Si hay un usuario logueado con clave BYOK, usa su cuenta de LLM; si no, cae al
+    provider por defecto del servidor (uso anónimo / demo).
+    """
+    if user is not None:
+        try:
+            byok = await resolve_provider_for_user(user.id, repo=api_key_repo)
+        except LLMError as e:
+            raise HTTPException(status.HTTP_502_BAD_GATEWAY, detail=str(e)) from e
+        if byok is not None:
+            return byok
     return _factory_get_llm()
 
 

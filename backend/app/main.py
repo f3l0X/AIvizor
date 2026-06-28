@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.analyze import router as analyze_router
 from app.api.auth import router as auth_router
+from app.api.keys import router as keys_router
 from app.api.train import router as train_router
 from app.config import settings
 from app.db.repositories import SqlUserRepository
@@ -40,6 +41,7 @@ app.add_middleware(
 app.include_router(analyze_router)
 app.include_router(train_router)
 app.include_router(auth_router)
+app.include_router(keys_router)
 
 
 @app.get("/health")

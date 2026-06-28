@@ -1,0 +1,91 @@
+# BYOK — Bring Your Own Key (clave de LLM por usuario)
+
+> Estado: implementado en Fase 7.3 (backend).
+> Tests: `backend/tests/test_byok_api.py` (18 tests). Suite total: 124 verdes.
+
+Hasta la Fase 7.2 todas las llamadas al LLM usaban **una** cuenta: la del servidor
+(`LLM_PROVIDER` + claves en `.env`). BYOK permite que cada usuario aporte **su propia**
+API key (Gemini o Claude); su análisis/entrenamiento consume *su* cuota, no la del
+servidor. Es la pieza que vuelve el proyecto multi-tenant a nivel de coste de IA.
+
+## Decisiones
+
+- **Las claves se cifran en reposo.** Una API key es un secreto: nunca se guarda en
+  claro. Se cifra con **Fernet** (AES-128-CBC + HMAC-SHA256) usando
+  `BYOK_ENCRYPTION_KEY`. La BD solo ve el token cifrado.
+- **La clave en claro solo entra, nunca sale.** El alta (`PUT`) la recibe; cualquier
+  lectura devuelve una **máscara** (`••••wxyz`, últimos 4 caracteres). El cliente no
+  puede recuperar la clave que guardó.
+- **BYOK es opt-in; el anónimo sigue funcionando.** Analyzer y Trainer resuelven el
+  provider por petición: si hay un usuario logueado **con** clave BYOK, usan la suya;
+  si no (anónimo, o logueado sin clave), caen al provider por defecto del servidor.
+  La demo pública no se rompe.
+- **Fallar visible antes que gastar la clave del servidor.** Si un usuario tiene clave
+  configurada pero no se puede usar (cifrado rotado, provider no construible), la
+  petición devuelve **502** en vez de tirar silenciosamente de la cuenta del servidor.
+- **`mock` no admite BYOK.** No tiene sentido como "tu propia" credencial; el provider
+  BYOK se restringe a `gemini`/`claude` a nivel de esquema (422 si se pide otro).
+
+## Componentes
+
+| Pieza | Fichero | Rol |
+|---|---|---|
+| Cifrado | `app/security/crypto.py` | `encrypt_secret` / `decrypt_secret` (Fernet) |
+| Modelo | `app/db/models.py::UserApiKey` | tabla `user_api_keys` (1 fila por usuario) |
+| Esquemas | `app/schemas/byok.py` | `ApiKeyCreate/StoredApiKey/ApiKeyPublic`, `mask_key` |
+| Repositorio | `app/db/repositories.py::ApiKeyRepository` | Protocol + `Sql*` + `InMemory*` |
+| Servicio | `app/services/byok.py` | set/get/delete + `resolve_provider_for_user` |
+| Factory | `app/llm/factory.py::build_provider*` | construcción reutilizable + caché por clave |
+| API | `app/api/keys.py` | endpoints `/api/keys` |
+
+Igual que Auth/Analyzer/Trainer, el servicio de dominio solo habla con el
+`ApiKeyRepository` (Protocol) y la capa `crypto`; no conoce HTTP ni SQLAlchemy. El
+cifrado/descifrado vive en el servicio: el repositorio solo persiste el texto cifrado.
+
+## Tres representaciones de la clave
+
+Deliberadamente separadas, como en auth:
+
+- `ApiKeyCreate` — entrada del cliente (clave en claro).
+- `StoredApiKey` — vista interna del backend (texto **cifrado**). Nunca se serializa.
+- `ApiKeyPublic` — salida HTTP: provider, model, timestamps y `masked_key`. Jamás la clave.
+
+## Endpoints (`/api/keys`, requieren sesión)
+
+| Método | Ruta | Comportamiento |
+|---|---|---|
+| `GET` | `/api/keys` | devuelve la config BYOK (enmascarada). **404** si no hay. |
+| `PUT` | `/api/keys` | crea o reemplaza (upsert) la clave. Devuelve la vista pública. |
+| `DELETE` | `/api/keys` | borra la clave (vuelve al provider del servidor). 204 (idempotente). |
+
+Sin sesión → **401** (todos usan `get_current_user`).
+
+## Resolución del provider por petición
+
+Analyzer (`POST /api/analyze`) y Trainer (`/api/train/*`) usan la dependency `get_llm`,
+ahora resolutiva:
+
+1. `get_current_user_optional` lee la cookie **sin lanzar** (devuelve `None` si no hay).
+2. Si hay usuario, `resolve_provider_for_user` descifra su clave y construye el provider
+   vía `build_provider_cached` (cacheado por `(provider, clave, modelo)` → reusa el
+   cliente HTTP entre peticiones del mismo usuario).
+3. Si no hay usuario o no tiene clave → `get_llm()` del servidor (default por env).
+
+## Notas operativas
+
+- Variable nueva en `.env` / `.env.example`: `BYOK_ENCRYPTION_KEY` (Fernet, urlsafe
+  base64 de 32 bytes). **Cámbiala en producción** y guárdala fuera del repo. Generar con:
+  `python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"`.
+  Rotarla invalida las claves ya guardadas: los usuarios deben volver a introducirlas
+  (el `GET` no revienta, muestra `••••`; el uso devuelve 502 hasta re-guardar).
+- Dependencia nueva: `cryptography` (en `pyproject.toml`). Rebuild de la imagen del
+  backend (`docker compose build backend`).
+- Migración `0004_user_api_keys` (FK a `users` con `ON DELETE CASCADE`: borrar un
+  usuario borra su clave).
+
+## Pendiente / futuro
+
+- **Validar la clave contra el provider** al guardarla (un ping real). Omitido en v1
+  para mantener los tests offline; sería un `POST /api/keys/test`.
+- Frontend: pantalla de ajustes para gestionar la clave (parte del login en el front).
+- Posible soporte de varias claves por usuario (hoy: una activa).

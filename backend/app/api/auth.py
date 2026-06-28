@@ -76,6 +76,22 @@ async def require_admin(user: UserInDB = Depends(get_current_user)) -> UserInDB:
     return user
 
 
+async def get_current_user_optional(
+    request: Request,
+    repo: UserRepository = Depends(get_user_repo),
+) -> UserInDB | None:
+    """Como ``get_current_user`` pero **sin** lanzar: devuelve ``None`` si no hay
+    sesión válida. Lo usan endpoints abiertos al anónimo (analyze/train) que quieren
+    activar BYOK cuando el usuario sí está logueado.
+    """
+    if not request.cookies.get(settings.cookie_name):
+        return None
+    try:
+        return await get_current_user(request, repo)
+    except HTTPException:
+        return None
+
+
 @router.post("/register", response_model=UserPublic, status_code=status.HTTP_201_CREATED)
 async def register(
     payload: UserCreate,
