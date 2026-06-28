@@ -40,6 +40,11 @@ services:
       - .env
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      # En Windows/WSL el watcher de Next.js no recibe eventos de cambio a través
+      # del bind-mount; el polling hace que el HMR detecte las ediciones (a costa
+      # de algo de CPU). Sin esto hay que reiniciar el contenedor tras cada cambio.
+      WATCHPACK_POLLING: "true"
+      CHOKIDAR_USEPOLLING: "true"
     ports:
       - "3000:3000"
     depends_on:
