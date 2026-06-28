@@ -19,9 +19,12 @@ import { useTranslations } from 'next-intl';
 
 import { ApiError, deleteApiKey, getApiKey, putApiKey } from '../lib/api';
 import { errorMessage } from '../lib/errors';
-import type { ApiKeyPublic, ByokProvider } from '../lib/types';
+import { BYOK_MODELS_BY_PROVIDER, type ApiKeyPublic, type ByokProvider } from '../lib/types';
 
 const PROVIDERS: ByokProvider[] = ['gemini', 'claude'];
+
+/** Valor centinela del <select> que activa el campo de modelo personalizado. */
+const CUSTOM_MODEL = '__custom__';
 
 export function ApiKeyManager() {
   const t = useTranslations('settings.byok');
@@ -33,6 +36,16 @@ export function ApiKeyManager() {
   const [provider, setProvider] = useState<ByokProvider>('gemini');
   const [apiKey, setApiKey] = useState('');
   const [model, setModel] = useState('');
+  // El modelo se elige de un desplegable según el proveedor; "Personalizado"
+  // revela un campo de texto para IDs que no estén en la lista.
+  const [customModel, setCustomModel] = useState(false);
+
+  // Cambiar de proveedor invalida el modelo elegido (los IDs no se comparten).
+  const changeProvider = (next: ByokProvider) => {
+    setProvider(next);
+    setModel('');
+    setCustomModel(false);
+  };
 
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -91,6 +104,7 @@ export function ApiKeyManager() {
       await deleteApiKey();
       setCurrent(null);
       setModel('');
+      setCustomModel(false);
       setNotice(t('deleted'));
     } catch (err) {
       setError(errorMessage(err, t));
@@ -169,7 +183,7 @@ export function ApiKeyManager() {
             <select
               id="byok_provider"
               value={provider}
-              onChange={(e) => setProvider(e.target.value as ByokProvider)}
+              onChange={(e) => changeProvider(e.target.value as ByokProvider)}
               className="mt-1 block w-full rounded-md border border-slate-300 bg-white p-2 text-sm text-slate-900 shadow-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
             >
               {PROVIDERS.map((p) => (
@@ -187,15 +201,40 @@ export function ApiKeyManager() {
             >
               {t('modelLabel')}
             </label>
-            <input
+            <select
               id="byok_model"
-              type="text"
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              placeholder={t('modelPlaceholder')}
-              maxLength={64}
+              value={customModel ? CUSTOM_MODEL : model}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (v === CUSTOM_MODEL) {
+                  setCustomModel(true);
+                  setModel('');
+                } else {
+                  setCustomModel(false);
+                  setModel(v);
+                }
+              }}
               className="mt-1 block w-full rounded-md border border-slate-300 bg-white p-2 text-sm text-slate-900 shadow-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-            />
+            >
+              <option value="">{t('modelDefault')}</option>
+              {BYOK_MODELS_BY_PROVIDER[provider].map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.label}
+                </option>
+              ))}
+              <option value={CUSTOM_MODEL}>{t('modelCustom')}</option>
+            </select>
+            {customModel && (
+              <input
+                type="text"
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                placeholder={t('modelPlaceholder')}
+                maxLength={64}
+                aria-label={t('modelCustom')}
+                className="mt-2 block w-full rounded-md border border-slate-300 bg-white p-2 font-mono text-sm text-slate-900 shadow-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+              />
+            )}
           </div>
         </div>
 

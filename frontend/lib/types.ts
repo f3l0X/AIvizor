@@ -152,6 +152,32 @@ export interface UserAdminUpdate {
 
 export type ByokProvider = 'gemini' | 'claude';
 
+export interface ByokModelOption {
+  id: string;
+  label: string;
+}
+
+/**
+ * Modelos sugeridos por proveedor para el desplegable de BYOK.
+ *
+ * Es una decisión de UI (como INDICATORS_BY_INPUT_TYPE): el backend acepta
+ * cualquier string de modelo, así que esta lista solo facilita la elección. Si
+ * el usuario necesita otro, el formulario ofrece la opción "Personalizado".
+ * Mantener los IDs en sintonía con los que reconoce cada proveedor.
+ */
+export const BYOK_MODELS_BY_PROVIDER: Record<ByokProvider, readonly ByokModelOption[]> = {
+  gemini: [
+    { id: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
+    { id: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro' },
+    { id: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash' },
+  ],
+  claude: [
+    { id: 'claude-haiku-4-5', label: 'Claude Haiku 4.5' },
+    { id: 'claude-sonnet-4-6', label: 'Claude Sonnet 4.6' },
+    { id: 'claude-opus-4-8', label: 'Claude Opus 4.8' },
+  ],
+};
+
 /** Alta/reemplazo de la clave. `model` opcional (default del provider). */
 export interface ApiKeyCreate {
   provider: ByokProvider;
