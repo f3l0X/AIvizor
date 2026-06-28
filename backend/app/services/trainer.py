@@ -23,10 +23,10 @@ Scoring:
 
 from __future__ import annotations
 
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 from app.db.repositories import TrainingAttemptRepository
-from app.llm.base import LLMError, LLMProvider
+from app.llm.base import LLMProvider
 from app.prompts.trainer import system_prompt as trainer_system_prompt
 from app.prompts.trainer import user_prompt as trainer_user_prompt
 from app.schemas.common import Difficulty, InputType, Language, Verdict
