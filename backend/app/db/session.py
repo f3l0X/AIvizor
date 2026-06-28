@@ -13,6 +13,7 @@ DATABASE_URL espera el driver async ``psycopg`` (no ``psycopg2``); ver `.env.exa
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from functools import lru_cache
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
@@ -46,5 +47,12 @@ def _session_factory() -> async_sessionmaker[AsyncSession]:
 
 async def get_db() -> AsyncIterator[AsyncSession]:
     """FastAPI dependency: una sesión por request."""
+    async with _session_factory()() as session:
+        yield session
+
+
+@asynccontextmanager
+async def session_scope() -> AsyncIterator[AsyncSession]:
+    """Sesión fuera de un request (startup, scripts). Misma factory que ``get_db``."""
     async with _session_factory()() as session:
         yield session

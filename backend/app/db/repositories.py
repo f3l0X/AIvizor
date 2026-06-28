@@ -19,8 +19,9 @@ from uuid import UUID, uuid4
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import Analysis, TrainingAttempt
+from app.db.models import Analysis, TrainingAttempt, User
 from app.schemas.analysis import AnalysisResult
+from app.schemas.auth import Role, UserInDB
 from app.schemas.common import InputType
 from app.schemas.training import TrainingAnswer, TrainingSample
 
@@ -178,14 +179,84 @@ class InMemoryTrainingAttemptRepository:
         )
 
 
+# ---------------------------------------------------------------------------
+# Usuarios (Fase 7.2)
+# ---------------------------------------------------------------------------
+
+@runtime_checkable
+class UserRepository(Protocol):
+    """Persistencia de usuarios. Devuelve ``UserInDB`` (incluye hash) o ``None``.
+
+    El servicio de auth nunca toca SQLAlchemy; opera contra este contrato, lo que
+    permite testear registro/login con la implementación en memoria.
+    """
+
+    async def create(self, *, email: str, password_hash: str, role: Role) -> UserInDB: ...
+
+    async def get_by_email(self, email: str) -> UserInDB | None: ...
+
+    async def get_by_id(self, user_id: UUID) -> UserInDB | None: ...
+
+
+class SqlUserRepository:
+    """Implementación sobre SQLAlchemy async."""
+
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def create(self, *, email: str, password_hash: str, role: Role) -> UserInDB:
+        row = User(email=email, password_hash=password_hash, role=role.value)
+        self._session.add(row)
+        await self._session.commit()
+        await self._session.refresh(row)
+        return UserInDB.model_validate(row)
+
+    async def get_by_email(self, email: str) -> UserInDB | None:
+        stmt = select(User).where(User.email == email)
+        row = (await self._session.execute(stmt)).scalar_one_or_none()
+        return UserInDB.model_validate(row) if row is not None else None
+
+    async def get_by_id(self, user_id: UUID) -> UserInDB | None:
+        row = await self._session.get(User, user_id)
+        return UserInDB.model_validate(row) if row is not None else None
+
+
+class InMemoryUserRepository:
+    """Implementación en memoria para tests. Indexa por id y mantiene email único."""
+
+    def __init__(self) -> None:
+        self.users: dict[UUID, UserInDB] = {}
+
+    async def create(self, *, email: str, password_hash: str, role: Role) -> UserInDB:
+        user = UserInDB(
+            id=uuid4(),
+            email=email,
+            password_hash=password_hash,
+            role=role,
+            is_active=True,
+            created_at=datetime.now(timezone.utc),
+        )
+        self.users[user.id] = user
+        return user
+
+    async def get_by_email(self, email: str) -> UserInDB | None:
+        return next((u for u in self.users.values() if u.email == email), None)
+
+    async def get_by_id(self, user_id: UUID) -> UserInDB | None:
+        return self.users.get(user_id)
+
+
 # select se exporta porque algunos tests querrán construir queries; lo dejamos
 # aquí para evitar imports adicionales en otros módulos.
 __all__ = [
     "AnalysisRepository",
     "InMemoryAnalysisRepository",
     "InMemoryTrainingAttemptRepository",
+    "InMemoryUserRepository",
     "SqlAnalysisRepository",
     "SqlTrainingAttemptRepository",
+    "SqlUserRepository",
     "TrainingAttemptRepository",
+    "UserRepository",
     "select",
 ]

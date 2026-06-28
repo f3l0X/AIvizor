@@ -13,7 +13,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
-from sqlalchemy import JSON, DateTime, Integer, String
+from sqlalchemy import JSON, Boolean, DateTime, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.session import Base
@@ -21,6 +21,29 @@ from app.db.session import Base
 
 def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
+
+
+class User(Base):
+    """Usuario de la plataforma (Fase 7.2).
+
+    - ``password_hash`` guarda un hash bcrypt; la contraseña en claro nunca toca
+      la BD ni sale al cliente.
+    - ``role`` es ``admin`` o ``user`` (ver ``app.schemas.auth.Role``); se guarda
+      como string para no acoplar la columna al enum.
+    - ``is_active`` permite deshabilitar cuentas sin borrarlas (futuro panel admin).
+    """
+
+    __tablename__ = "users"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    email: Mapped[str] = mapped_column(String(320), unique=True, index=True)
+    password_hash: Mapped[str] = mapped_column(String(128))
+    role: Mapped[str] = mapped_column(String(16), default="user")
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+    def __repr__(self) -> str:  # pragma: no cover
+        return f"<User id={self.id} email={self.email} role={self.role}>"
 
 
 class Analysis(Base):
