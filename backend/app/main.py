@@ -1,7 +1,8 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.api.admin import router as admin_router
 from app.api.analyze import router as analyze_router
@@ -38,6 +39,36 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+def _cors_headers(request: Request) -> dict[str, str]:
+    """Cabeceras CORS para una respuesta de error, replicando la política del
+    middleware (echo del Origin si está permitido + credenciales)."""
+    origin = request.headers.get("origin")
+    if origin and origin in settings.cors_origins_list:
+        return {
+            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Credentials": "true",
+            "Vary": "Origin",
+        }
+    return {}
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Da una respuesta 500 con cabeceras CORS ante cualquier excepción no controlada.
+
+    FastAPI sirve los 500 no controlados por encima del ``CORSMiddleware``, así que
+    sin esto la respuesta llega al navegador SIN cabeceras CORS: el navegador la
+    bloquea y el cliente ve un falso "no hay conexión" en vez del error real. El
+    `raise` posterior de Starlette sigue registrando el traceback en el servidor.
+    """
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error"},
+        headers=_cors_headers(request),
+    )
+
 
 app.include_router(analyze_router)
 app.include_router(train_router)
