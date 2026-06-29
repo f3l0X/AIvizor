@@ -1,15 +1,14 @@
 /**
- * Gestión de la clave BYOK del usuario (pantalla de ajustes).
+ * Gestión de las claves BYOK del usuario (pantalla de ajustes).
  *
- * Flujo:
- *   - Al montar, `GET /api/keys`. Un 404 NO es error: significa "sin clave"
- *     (el usuario cae al provider del servidor). Cualquier otro fallo sí lo es.
- *   - El alta/reemplazo (`PUT`) envía la clave en claro UNA vez; la respuesta ya
- *     viene enmascarada (`••••wxyz`). El cliente nunca puede releer la clave.
- *   - `DELETE` vuelve al provider del servidor (idempotente).
+ * Multi-clave (Fase 7.6): el usuario guarda una clave por proveedor (gemini/claude)
+ * y elige cuál está **activa** (la que usan Analyzer/Trainer). Flujo:
+ *   - Al montar, `GET /api/keys` → lista (vacía si no hay).
+ *   - `PUT /api/keys` crea/reemplaza la clave de un proveedor (la clave en claro solo
+ *     entra; la respuesta viene enmascarada). La primera del usuario queda activa.
+ *   - `PUT /api/keys/active` cambia la activa; `DELETE /api/keys/{provider}` la borra.
  *
- * `mock` no admite BYOK: el selector solo ofrece gemini/claude (espejo del
- * esquema del backend, que devuelve 422 para otros providers).
+ * `mock` no admite BYOK: el selector solo ofrece gemini/claude (espejo del backend).
  */
 
 'use client';
@@ -17,7 +16,12 @@
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 
-import { ApiError, deleteApiKey, getApiKey, putApiKey } from '../lib/api';
+import {
+  deleteApiKey,
+  getApiKeys,
+  putApiKey,
+  setActiveProvider,
+} from '../lib/api';
 import { errorMessage } from '../lib/errors';
 import { BYOK_MODELS_BY_PROVIDER, type ApiKeyPublic, type ByokProvider } from '../lib/types';
 
@@ -28,9 +32,8 @@ const CUSTOM_MODEL = '__custom__';
 
 /**
  * Adivina el proveedor por el prefijo de la clave: las de Claude empiezan por
- * `sk-ant-` y las de Gemini por `AIza`. Evita que el usuario guarde una clave
- * con el proveedor equivocado (el desplegable se pre-rellena con su última
- * config, así que es fácil pegar una key de otro proveedor sin cambiarlo).
+ * `sk-ant-` y las de Gemini por `AIza`. Ajusta el desplegable solo al pegarla,
+ * para no guardar una clave con el proveedor equivocado.
  */
 function detectProvider(key: string): ByokProvider | null {
   const k = key.trim();
@@ -42,7 +45,7 @@ function detectProvider(key: string): ByokProvider | null {
 export function ApiKeyManager() {
   const t = useTranslations('settings.byok');
 
-  const [current, setCurrent] = useState<ApiKeyPublic | null>(null);
+  const [keys, setKeys] = useState<ApiKeyPublic[]>([]);
   const [loaded, setLoaded] = useState(false);
 
   // Campos del formulario de alta/reemplazo.
@@ -53,6 +56,10 @@ export function ApiKeyManager() {
   // revela un campo de texto para IDs que no estén en la lista.
   const [customModel, setCustomModel] = useState(false);
 
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
   // Cambiar de proveedor invalida el modelo elegido (los IDs no se comparten).
   const changeProvider = (next: ByokProvider) => {
     setProvider(next);
@@ -60,34 +67,15 @@ export function ApiKeyManager() {
     setCustomModel(false);
   };
 
-  const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  const refresh = async () => {
+    setKeys(await getApiKeys());
+  };
 
   const load = async () => {
     try {
-      const key = await getApiKey();
-      setCurrent(key);
-      // Pre-rellena el formulario con la última configuración guardada para que,
-      // al volver, se muestre tal cual la dejó el usuario. La API key en sí no se
-      // puede pre-rellenar (solo conocemos su máscara): se reintroduce al cambiarla.
-      setProvider(key.provider);
-      if (key.model) {
-        setModel(key.model);
-        // Si el modelo guardado no está en la lista del proveedor, modo personalizado.
-        const presets = BYOK_MODELS_BY_PROVIDER[key.provider].map((m) => m.id);
-        setCustomModel(!presets.includes(key.model));
-      } else {
-        setModel('');
-        setCustomModel(false);
-      }
+      await refresh();
     } catch (e) {
-      // 404 = el usuario aún no configuró ninguna clave: estado válido, no error.
-      if (e instanceof ApiError && e.status === 404) {
-        setCurrent(null);
-      } else {
-        setError(errorMessage(e, t));
-      }
+      setError(errorMessage(e, t));
     } finally {
       setLoaded(true);
     }
@@ -98,21 +86,16 @@ export function ApiKeyManager() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (apiKey.trim().length < 8 || busy) return;
+  /** Envuelve una acción: limpia avisos, marca busy y refresca la lista. */
+  const run = async (action: () => Promise<void>, successKey: string) => {
+    if (busy) return;
     setBusy(true);
     setError(null);
     setNotice(null);
     try {
-      const saved = await putApiKey({
-        provider,
-        api_key: apiKey.trim(),
-        model: model.trim() || null,
-      });
-      setCurrent(saved);
-      setApiKey(''); // nunca conservamos la clave en claro en memoria de la UI
-      setNotice(t('saved'));
+      await action();
+      await refresh();
+      setNotice(t(successKey));
     } catch (err) {
       setError(errorMessage(err, t));
     } finally {
@@ -120,23 +103,24 @@ export function ApiKeyManager() {
     }
   };
 
-  const handleDelete = async () => {
-    if (busy) return;
-    setBusy(true);
-    setError(null);
-    setNotice(null);
-    try {
-      await deleteApiKey();
-      setCurrent(null);
-      setModel('');
-      setCustomModel(false);
-      setNotice(t('deleted'));
-    } catch (err) {
-      setError(errorMessage(err, t));
-    } finally {
-      setBusy(false);
-    }
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (apiKey.trim().length < 8) return;
+    void run(async () => {
+      await putApiKey({ provider, api_key: apiKey.trim(), model: model.trim() || null });
+      setApiKey(''); // nunca conservamos la clave en claro en memoria de la UI
+    }, 'saved');
   };
+
+  const handleActivate = (p: ByokProvider) =>
+    run(async () => {
+      await setActiveProvider(p);
+    }, 'activated');
+
+  const handleDelete = (p: ByokProvider) =>
+    run(async () => {
+      await deleteApiKey(p);
+    }, 'deleted');
 
   const canSave = apiKey.trim().length >= 8 && !busy;
 
@@ -162,40 +146,68 @@ export function ApiKeyManager() {
         </div>
       )}
 
-      {/* Estado actual de la clave */}
-      <div className="mt-4 rounded-md bg-slate-100 p-3 text-sm dark:bg-slate-900">
+      {/* Claves guardadas */}
+      <div className="mt-4">
         {!loaded ? (
-          <span className="text-slate-500 dark:text-slate-400">{t('loading')}</span>
-        ) : current ? (
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <span className="font-medium">{t(`provider.${current.provider}`)}</span>
-              <span className="ml-2 font-mono text-slate-600 dark:text-slate-300">
-                {current.masked_key}
-              </span>
-              {current.model && (
-                <span className="ml-2 text-slate-500 dark:text-slate-400">({current.model})</span>
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={handleDelete}
-              disabled={busy}
-              className="rounded-md border border-red-300 px-2.5 py-1 text-xs font-medium text-red-700 transition hover:bg-red-50 disabled:opacity-50 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950/40"
-            >
-              {t('delete')}
-            </button>
-          </div>
+          <p className="text-sm text-slate-500 dark:text-slate-400">{t('loading')}</p>
+        ) : keys.length === 0 ? (
+          <p className="rounded-md bg-slate-100 p-3 text-sm text-slate-500 dark:bg-slate-900 dark:text-slate-400">
+            {t('none')}
+          </p>
         ) : (
-          <span className="text-slate-500 dark:text-slate-400">{t('none')}</span>
+          <ul className="space-y-2">
+            {keys.map((k) => (
+              <li
+                key={k.provider}
+                className={
+                  k.is_active
+                    ? 'flex flex-wrap items-center justify-between gap-2 rounded-md border border-brand/40 bg-brand/5 p-3 text-sm dark:bg-brand/10'
+                    : 'flex flex-wrap items-center justify-between gap-2 rounded-md bg-slate-100 p-3 text-sm dark:bg-slate-900'
+                }
+              >
+                <div>
+                  <span className="font-medium">{t(`provider.${k.provider}`)}</span>
+                  <span className="ml-2 font-mono text-slate-600 dark:text-slate-300">
+                    {k.masked_key}
+                  </span>
+                  {k.model && (
+                    <span className="ml-2 text-slate-500 dark:text-slate-400">({k.model})</span>
+                  )}
+                  {k.is_active && (
+                    <span className="ml-2 rounded-full bg-brand/15 px-2 py-0.5 text-xs font-semibold text-brand">
+                      {t('active')}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  {!k.is_active && (
+                    <button
+                      type="button"
+                      onClick={() => handleActivate(k.provider)}
+                      disabled={busy}
+                      className="rounded-md border border-slate-300 px-2.5 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                    >
+                      {t('setActive')}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(k.provider)}
+                    disabled={busy}
+                    className="rounded-md border border-red-300 px-2.5 py-1 text-xs font-medium text-red-700 transition hover:bg-red-50 disabled:opacity-50 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950/40"
+                  >
+                    {t('delete')}
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
 
       {/* Formulario de alta / reemplazo */}
       <form onSubmit={handleSave} className="mt-6 space-y-4">
-        <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-          {current ? t('replaceTitle') : t('addTitle')}
-        </p>
+        <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{t('formTitle')}</p>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>

@@ -13,7 +13,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.session import Base
@@ -47,32 +47,37 @@ class User(Base):
 
 
 class UserApiKey(Base):
-    """API key de LLM aportada por el usuario (BYOK, Fase 7.3).
+    """API key de LLM aportada por el usuario (BYOK, Fase 7.3; multi-clave en 7.6).
 
     - ``api_key_encrypted`` guarda el token Fernet (cifrado en reposo); la clave en
       claro nunca toca la BD ni sale al cliente.
     - ``provider`` es ``gemini`` o ``claude`` (el mock no admite BYOK).
     - ``model`` es opcional: si está vacío, se usa el modelo por defecto del provider.
-    - Un usuario tiene como mucho **una** configuración BYOK activa: ``user_id`` único.
-      Reemplazarla es un upsert sobre la misma fila.
+    - Un usuario puede tener **una clave por proveedor** (único ``(user_id, provider)``).
+      ``is_active`` marca cuál se usa; la capa de aplicación garantiza ≤1 activa por
+      usuario. Reemplazar la clave de un proveedor es un upsert sobre su fila.
     """
 
     __tablename__ = "user_api_keys"
+    __table_args__ = (
+        UniqueConstraint("user_id", "provider", name="uq_user_api_keys_user_provider"),
+    )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     user_id: Mapped[UUID] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"), unique=True, index=True
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
     )
     provider: Mapped[str] = mapped_column(String(16))
     api_key_encrypted: Mapped[str] = mapped_column(String(512))
     model: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_utcnow, onupdate=_utcnow
     )
 
     def __repr__(self) -> str:  # pragma: no cover
-        return f"<UserApiKey user_id={self.user_id} provider={self.provider}>"
+        return f"<UserApiKey user_id={self.user_id} provider={self.provider} active={self.is_active}>"
 
 
 class Analysis(Base):

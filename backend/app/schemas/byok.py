@@ -37,6 +37,12 @@ class ApiKeyCreate(BaseModel):
     model: str | None = Field(default=None, max_length=64)
 
 
+class ActiveProviderRequest(BaseModel):
+    """Selección del proveedor cuya clave queda activa."""
+
+    provider: ByokProvider
+
+
 class StoredApiKey(BaseModel):
     """Representación interna con el texto cifrado. Uso exclusivo del backend."""
 
@@ -47,6 +53,7 @@ class StoredApiKey(BaseModel):
     provider: ByokProvider
     api_key_encrypted: str
     model: str | None
+    is_active: bool
     created_at: datetime
     updated_at: datetime
 
@@ -57,5 +64,6 @@ class ApiKeyPublic(BaseModel):
     provider: ByokProvider
     model: str | None
     masked_key: str
+    is_active: bool
     created_at: datetime
     updated_at: datetime

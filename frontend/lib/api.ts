@@ -15,6 +15,7 @@ import type {
   AnalyzeRequest,
   ApiKeyCreate,
   ApiKeyPublic,
+  ByokProvider,
   LoginRequest,
   RegisterRequest,
   TrainingAnswer,
@@ -157,13 +158,13 @@ export async function getMe(): Promise<UserPublic> {
 }
 
 // ---------------------------------------------------------------------------
-// BYOK (Fase 7.4)
+// BYOK (Fase 7.4 / multi-clave 7.6)
 //
-// getApiKey() devuelve 404 si el usuario no tiene clave configurada: el llamante
-// debe tratar 404 como "sin clave", no como error. putApiKey() hace upsert.
+// Un usuario guarda una clave por proveedor (gemini/claude) y elige cuál está
+// activa. getApiKeys() devuelve la lista (vacía si no hay; ya no hay 404).
 // ---------------------------------------------------------------------------
 
-export async function getApiKey(): Promise<ApiKeyPublic> {
+export async function getApiKeys(): Promise<ApiKeyPublic[]> {
   const r = await fetch(`${API_URL}/api/keys`, {
     cache: 'no-store',
     credentials: 'include',
@@ -184,8 +185,20 @@ export async function putApiKey(req: ApiKeyCreate): Promise<ApiKeyPublic> {
   return r.json();
 }
 
-export async function deleteApiKey(): Promise<void> {
-  const r = await fetch(`${API_URL}/api/keys`, {
+export async function setActiveProvider(provider: ByokProvider): Promise<ApiKeyPublic> {
+  const r = await fetch(`${API_URL}/api/keys/active`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    cache: 'no-store',
+    credentials: 'include',
+    body: JSON.stringify({ provider }),
+  });
+  if (!r.ok) throw await parseError(r);
+  return r.json();
+}
+
+export async function deleteApiKey(provider: ByokProvider): Promise<void> {
+  const r = await fetch(`${API_URL}/api/keys/${provider}`, {
     method: 'DELETE',
     cache: 'no-store',
     credentials: 'include',

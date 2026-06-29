@@ -308,19 +308,26 @@ class InMemoryUserRepository:
 
 @runtime_checkable
 class ApiKeyRepository(Protocol):
-    """Persistencia de la clave BYOK. Opera siempre sobre el texto **cifrado**;
+    """Persistencia de las claves BYOK. Opera siempre sobre el texto **cifrado**;
     el cifrado/descifrado vive en el servicio ``byok``, no aquí.
 
-    Un usuario tiene como mucho una fila: ``upsert`` crea o reemplaza.
+    Un usuario tiene como mucho una fila por proveedor (gemini/claude) y como
+    mucho una activa (``is_active``). ``upsert`` crea o reemplaza la del proveedor.
     """
 
-    async def get(self, user_id: UUID) -> StoredApiKey | None: ...
+    async def list_for_user(self, user_id: UUID) -> list[StoredApiKey]: ...
+
+    async def get(self, user_id: UUID, provider: str) -> StoredApiKey | None: ...
+
+    async def get_active(self, user_id: UUID) -> StoredApiKey | None: ...
 
     async def upsert(
         self, *, user_id: UUID, provider: str, api_key_encrypted: str, model: str | None
     ) -> StoredApiKey: ...
 
-    async def delete(self, user_id: UUID) -> bool: ...
+    async def set_active(self, user_id: UUID, provider: str) -> StoredApiKey | None: ...
+
+    async def delete(self, user_id: UUID, provider: str) -> bool: ...
 
 
 class SqlApiKeyRepository:
@@ -329,34 +336,65 @@ class SqlApiKeyRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def get(self, user_id: UUID) -> StoredApiKey | None:
+    async def _rows(self, user_id: UUID) -> list[UserApiKey]:
         stmt = select(UserApiKey).where(UserApiKey.user_id == user_id)
+        return list((await self._session.execute(stmt)).scalars().all())
+
+    async def list_for_user(self, user_id: UUID) -> list[StoredApiKey]:
+        rows = sorted(await self._rows(user_id), key=lambda r: r.provider)
+        return [StoredApiKey.model_validate(r) for r in rows]
+
+    async def get(self, user_id: UUID, provider: str) -> StoredApiKey | None:
+        stmt = select(UserApiKey).where(
+            UserApiKey.user_id == user_id, UserApiKey.provider == provider
+        )
+        row = (await self._session.execute(stmt)).scalar_one_or_none()
+        return StoredApiKey.model_validate(row) if row is not None else None
+
+    async def get_active(self, user_id: UUID) -> StoredApiKey | None:
+        stmt = select(UserApiKey).where(
+            UserApiKey.user_id == user_id, UserApiKey.is_active.is_(True)
+        )
         row = (await self._session.execute(stmt)).scalar_one_or_none()
         return StoredApiKey.model_validate(row) if row is not None else None
 
     async def upsert(
         self, *, user_id: UUID, provider: str, api_key_encrypted: str, model: str | None
     ) -> StoredApiKey:
-        stmt = select(UserApiKey).where(UserApiKey.user_id == user_id)
-        row = (await self._session.execute(stmt)).scalar_one_or_none()
+        existing = await self._rows(user_id)
+        row = next((r for r in existing if r.provider == provider), None)
         if row is None:
+            # La primera clave del usuario queda activa automáticamente.
             row = UserApiKey(
                 user_id=user_id,
                 provider=provider,
                 api_key_encrypted=api_key_encrypted,
                 model=model,
+                is_active=(len(existing) == 0),
             )
             self._session.add(row)
         else:
-            row.provider = provider
             row.api_key_encrypted = api_key_encrypted
             row.model = model
         await self._session.commit()
         await self._session.refresh(row)
         return StoredApiKey.model_validate(row)
 
-    async def delete(self, user_id: UUID) -> bool:
-        stmt = select(UserApiKey).where(UserApiKey.user_id == user_id)
+    async def set_active(self, user_id: UUID, provider: str) -> StoredApiKey | None:
+        rows = await self._rows(user_id)
+        target = next((r for r in rows if r.provider == provider), None)
+        if target is None:
+            return None
+        for r in rows:
+            r.is_active = r is target
+        await self._session.commit()
+        await self._session.refresh(target)
+        return StoredApiKey.model_validate(target)
+
+    async def delete(self, user_id: UUID, provider: str) -> bool:
+        stmt = select(UserApiKey).where(
+            UserApiKey.user_id == user_id, UserApiKey.provider == provider
+        )
         row = (await self._session.execute(stmt)).scalar_one_or_none()
         if row is None:
             return False
@@ -366,18 +404,27 @@ class SqlApiKeyRepository:
 
 
 class InMemoryApiKeyRepository:
-    """Implementación en memoria para tests. Una entrada por usuario."""
+    """Implementación en memoria para tests. Una entrada por (usuario, proveedor)."""
 
     def __init__(self) -> None:
-        self.keys: dict[UUID, StoredApiKey] = {}
+        self.keys: dict[tuple[UUID, str], StoredApiKey] = {}
 
-    async def get(self, user_id: UUID) -> StoredApiKey | None:
-        return self.keys.get(user_id)
+    def _for_user(self, user_id: UUID) -> list[StoredApiKey]:
+        return [v for (uid, _), v in self.keys.items() if uid == user_id]
+
+    async def list_for_user(self, user_id: UUID) -> list[StoredApiKey]:
+        return sorted(self._for_user(user_id), key=lambda s: s.provider)
+
+    async def get(self, user_id: UUID, provider: str) -> StoredApiKey | None:
+        return self.keys.get((user_id, provider))
+
+    async def get_active(self, user_id: UUID) -> StoredApiKey | None:
+        return next((s for s in self._for_user(user_id) if s.is_active), None)
 
     async def upsert(
         self, *, user_id: UUID, provider: str, api_key_encrypted: str, model: str | None
     ) -> StoredApiKey:
-        existing = self.keys.get(user_id)
+        existing = self.keys.get((user_id, provider))
         now = datetime.now(timezone.utc)
         stored = StoredApiKey(
             id=existing.id if existing else uuid4(),
@@ -385,14 +432,24 @@ class InMemoryApiKeyRepository:
             provider=provider,  # type: ignore[arg-type]
             api_key_encrypted=api_key_encrypted,
             model=model,
+            # Preserva el estado si ya existía; la primera clave del usuario queda activa.
+            is_active=existing.is_active if existing else (len(self._for_user(user_id)) == 0),
             created_at=existing.created_at if existing else now,
             updated_at=now,
         )
-        self.keys[user_id] = stored
+        self.keys[(user_id, provider)] = stored
         return stored
 
-    async def delete(self, user_id: UUID) -> bool:
-        return self.keys.pop(user_id, None) is not None
+    async def set_active(self, user_id: UUID, provider: str) -> StoredApiKey | None:
+        if (user_id, provider) not in self.keys:
+            return None
+        for (uid, prov), s in list(self.keys.items()):
+            if uid == user_id:
+                self.keys[(uid, prov)] = s.model_copy(update={"is_active": prov == provider})
+        return self.keys[(user_id, provider)]
+
+    async def delete(self, user_id: UUID, provider: str) -> bool:
+        return self.keys.pop((user_id, provider), None) is not None
 
 
 # select se exporta porque algunos tests querrán construir queries; lo dejamos

@@ -190,6 +190,7 @@ export interface ApiKeyPublic {
   provider: ByokProvider;
   model: string | null;
   masked_key: string;
+  is_active: boolean;
   created_at: string; // ISO 8601
   updated_at: string; // ISO 8601
 }

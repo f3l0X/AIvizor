@@ -50,13 +50,22 @@ Deliberadamente separadas, como en auth:
 - `StoredApiKey` — vista interna del backend (texto **cifrado**). Nunca se serializa.
 - `ApiKeyPublic` — salida HTTP: provider, model, timestamps y `masked_key`. Jamás la clave.
 
+## Multi-clave: una por proveedor + activa (Fase 7.6)
+
+Un usuario puede guardar **una clave por proveedor** (gemini/claude) y elegir cuál
+está **activa** — la que usan Analyzer/Trainer. Modelo de datos: `user_api_keys` con
+único `(user_id, provider)` y un flag `is_active`. Invariante (forzada en la capa de
+aplicación): **como mucho una clave activa por usuario**. La primera clave que guarda
+un usuario queda activa automáticamente; borrar la activa promueve a otra restante.
+
 ## Endpoints (`/api/keys`, requieren sesión)
 
 | Método | Ruta | Comportamiento |
 |---|---|---|
-| `GET` | `/api/keys` | devuelve la config BYOK (enmascarada). **404** si no hay. |
-| `PUT` | `/api/keys` | crea o reemplaza (upsert) la clave. Devuelve la vista pública. |
-| `DELETE` | `/api/keys` | borra la clave (vuelve al provider del servidor). 204 (idempotente). |
+| `GET` | `/api/keys` | lista de claves (enmascaradas) con `is_active`. Lista vacía si no hay. |
+| `PUT` | `/api/keys` | crea o reemplaza (upsert) la clave de un proveedor. Devuelve la vista pública. |
+| `PUT` | `/api/keys/active` | marca activa la clave de un proveedor (`{provider}`). **404** si no hay clave suya. |
+| `DELETE` | `/api/keys/{provider}` | borra esa clave (204). Si era la activa y queda otra, la activa. |
 
 Sin sesión → **401** (todos usan `get_current_user`).
 
@@ -66,10 +75,10 @@ Analyzer (`POST /api/analyze`) y Trainer (`/api/train/*`) usan la dependency `ge
 ahora resolutiva:
 
 1. `get_current_user_optional` lee la cookie **sin lanzar** (devuelve `None` si no hay).
-2. Si hay usuario, `resolve_provider_for_user` descifra su clave y construye el provider
-   vía `build_provider_cached` (cacheado por `(provider, clave, modelo)` → reusa el
-   cliente HTTP entre peticiones del mismo usuario).
-3. Si no hay usuario o no tiene clave → `get_llm()` del servidor (default por env).
+2. Si hay usuario, `resolve_provider_for_user` toma su clave **activa**, la descifra y
+   construye el provider vía `build_provider_cached` (cacheado por `(provider, clave,
+   modelo)` → reusa el cliente HTTP entre peticiones del mismo usuario).
+3. Si no hay usuario o no tiene clave activa → `get_llm()` del servidor (default por env).
 
 ## Notas operativas
 
@@ -81,13 +90,13 @@ ahora resolutiva:
 - Dependencia nueva: `cryptography` (en `pyproject.toml`). Rebuild de la imagen del
   backend (`docker compose build backend`).
 - Migración `0004_user_api_keys` (FK a `users` con `ON DELETE CASCADE`: borrar un
-  usuario borra su clave).
+  usuario borra sus claves) y `0005_byok_multikey` (único `(user_id, provider)` +
+  `is_active`; backfill: las claves existentes quedan activas).
 
 ## Pendiente / futuro
 
 - **Validar la clave contra el provider** al guardarla (un ping real). Omitido en v1
   para mantener los tests offline; sería un `POST /api/keys/test`.
-- Posible soporte de varias claves por usuario (hoy: una activa).
 
 > El frontend de gestión de la clave (pantalla de ajustes) se implementó en la
 > Fase 7.4 — ver [frontend-auth.md](frontend-auth.md).
