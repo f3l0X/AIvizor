@@ -26,6 +26,19 @@ const PROVIDERS: ByokProvider[] = ['gemini', 'claude'];
 /** Valor centinela del <select> que activa el campo de modelo personalizado. */
 const CUSTOM_MODEL = '__custom__';
 
+/**
+ * Adivina el proveedor por el prefijo de la clave: las de Claude empiezan por
+ * `sk-ant-` y las de Gemini por `AIza`. Evita que el usuario guarde una clave
+ * con el proveedor equivocado (el desplegable se pre-rellena con su última
+ * config, así que es fácil pegar una key de otro proveedor sin cambiarlo).
+ */
+function detectProvider(key: string): ByokProvider | null {
+  const k = key.trim();
+  if (k.startsWith('sk-ant-')) return 'claude';
+  if (k.startsWith('AIza')) return 'gemini';
+  return null;
+}
+
 export function ApiKeyManager() {
   const t = useTranslations('settings.byok');
 
@@ -262,7 +275,13 @@ export function ApiKeyManager() {
             type="password"
             autoComplete="off"
             value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
+            onChange={(e) => {
+              const v = e.target.value;
+              setApiKey(v);
+              // Si la clave delata su proveedor, ajusta el desplegable solo.
+              const detected = detectProvider(v);
+              if (detected && detected !== provider) changeProvider(detected);
+            }}
             placeholder={t('keyPlaceholder')}
             minLength={8}
             maxLength={400}
