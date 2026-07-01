@@ -68,7 +68,24 @@ export function ApiKeyManager() {
   };
 
   const refresh = async () => {
-    setKeys(await getApiKeys());
+    const list = await getApiKeys();
+    setKeys(list);
+    // El formulario refleja la clave ACTIVA: al cargar y tras cada acción
+    // (activar/guardar/borrar), el desplegable de proveedor (y el modelo) se
+    // ponen en los de la clave activa. Mientras el usuario teclea una clave, la
+    // autodetección por prefijo sigue mandando (no hay refresh hasta guardar).
+    const active = list.find((k) => k.is_active);
+    if (active) {
+      setProvider(active.provider);
+      if (active.model) {
+        setModel(active.model);
+        const presets = BYOK_MODELS_BY_PROVIDER[active.provider].map((m) => m.id);
+        setCustomModel(!presets.includes(active.model));
+      } else {
+        setModel('');
+        setCustomModel(false);
+      }
+    }
   };
 
   const load = async () => {
