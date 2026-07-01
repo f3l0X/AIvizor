@@ -28,12 +28,14 @@ from app.schemas.byok import (
     ApiKeyPublic,
     ByokProvider,
 )
+from app.llm.base import LLMError
 from app.services.byok import (
     NoApiKeyError,
     delete_api_key,
     list_api_keys,
     set_active_provider,
     set_api_key,
+    validate_api_key,
 )
 
 router = APIRouter(prefix="/api/keys", tags=["byok"])
@@ -59,6 +61,18 @@ async def put_key(
     repo: ApiKeyRepository = Depends(get_api_key_repo),
 ) -> ApiKeyPublic:
     return await set_api_key(user.id, payload, repo=repo)
+
+
+@router.post("/test", status_code=status.HTTP_204_NO_CONTENT)
+async def test_key(
+    payload: ApiKeyCreate,
+    _user: UserInDB = Depends(get_current_user),
+) -> None:
+    """Valida la clave contra el proveedor sin guardarla. 400 si no vale."""
+    try:
+        await validate_api_key(payload)
+    except LLMError as e:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(e)) from e
 
 
 @router.put("/active", response_model=ApiKeyPublic)

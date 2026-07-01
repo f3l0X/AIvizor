@@ -21,6 +21,7 @@ import {
   getApiKeys,
   putApiKey,
   setActiveProvider,
+  testApiKey,
 } from '../lib/api';
 import { errorMessage } from '../lib/errors';
 import { BYOK_MODELS_BY_PROVIDER, type ApiKeyPublic, type ByokProvider } from '../lib/types';
@@ -124,7 +125,11 @@ export function ApiKeyManager() {
     e.preventDefault();
     if (apiKey.trim().length < 8) return;
     void run(async () => {
-      await putApiKey({ provider, api_key: apiKey.trim(), model: model.trim() || null });
+      const req = { provider, api_key: apiKey.trim(), model: model.trim() || null };
+      // Valida contra el proveedor ANTES de guardar: si la clave o el modelo no
+      // valen, lanza (400) y no se persiste nada — avisamos aquí, no al analizar.
+      await testApiKey(req);
+      await putApiKey(req);
       setApiKey(''); // nunca conservamos la clave en claro en memoria de la UI
     }, 'saved');
   };

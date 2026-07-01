@@ -50,6 +50,21 @@ class ClaudeProvider:
         self._client = AsyncAnthropic(api_key=api_key)
         self._model = model
 
+    async def validate(self) -> None:
+        """Ping mínimo (1 token) para confirmar que la clave y el modelo valen."""
+        try:
+            await self._client.messages.create(
+                model=self._model,
+                max_tokens=1,
+                messages=[{"role": "user", "content": "ping"}],
+            )
+        except Exception as e:
+            raise LLMError(
+                f"Claude rechazó la clave o el modelo: {e}",
+                provider=self.name,
+                cause=e,
+            ) from e
+
     async def complete_structured(
         self,
         *,

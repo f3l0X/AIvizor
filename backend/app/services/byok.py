@@ -66,6 +66,17 @@ async def list_api_keys(user_id: UUID, *, repo: ApiKeyRepository) -> list[ApiKey
     return [_to_public(s) for s in await repo.list_for_user(user_id)]
 
 
+async def validate_api_key(data: ApiKeyCreate) -> None:
+    """Comprueba contra el proveedor que la clave (y el modelo) son utilizables.
+
+    Construye el provider con la clave **en claro** que envía el cliente y hace una
+    llamada mínima. Lanza ``LLMError`` si no vale. No persiste nada: sirve para avisar
+    al guardar en vez de fallar más tarde durante un análisis.
+    """
+    provider = build_provider_cached(data.provider, data.api_key, data.model)
+    await provider.validate()
+
+
 async def set_active_provider(
     user_id: UUID, provider: str, *, repo: ApiKeyRepository
 ) -> ApiKeyPublic:

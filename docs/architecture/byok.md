@@ -64,8 +64,18 @@ un usuario queda activa automáticamente; borrar la activa promueve a otra resta
 |---|---|---|
 | `GET` | `/api/keys` | lista de claves (enmascaradas) con `is_active`. Lista vacía si no hay. |
 | `PUT` | `/api/keys` | crea o reemplaza (upsert) la clave de un proveedor. Devuelve la vista pública. |
+| `POST` | `/api/keys/test` | valida la clave contra el proveedor **sin guardarla** (204). **400** si no vale. |
 | `PUT` | `/api/keys/active` | marca activa la clave de un proveedor (`{provider}`). **404** si no hay clave suya. |
 | `DELETE` | `/api/keys/{provider}` | borra esa clave (204). Si era la activa y queda otra, la activa. |
+
+## Validación al guardar
+
+`validate_api_key` (servicio) construye el provider con la clave en claro y hace una
+llamada mínima (`LLMProvider.validate()`, un *ping* de 1 token): confirma que la clave
+**y el modelo** son utilizables. El frontend llama a `POST /api/keys/test` antes de
+`PUT` al guardar, así que un error de credenciales se ve **al momento** en Ajustes en
+vez de fallar más tarde durante un análisis. El `mock` valida siempre (no-op), lo que
+mantiene la suite offline.
 
 Sin sesión → **401** (todos usan `get_current_user`).
 
@@ -95,8 +105,7 @@ ahora resolutiva:
 
 ## Pendiente / futuro
 
-- **Validar la clave contra el provider** al guardarla (un ping real). Omitido en v1
-  para mantener los tests offline; sería un `POST /api/keys/test`.
+- (Nada crítico pendiente en BYOK.)
 
 > El frontend de gestión de la clave (pantalla de ajustes) se implementó en la
 > Fase 7.4 — ver [frontend-auth.md](frontend-auth.md).

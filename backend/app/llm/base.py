@@ -86,3 +86,12 @@ class LLMProvider(Protocol):
                 cumple el esquema. La lógica de negocio puede capturar este único tipo.
         """
         ...
+
+    async def validate(self) -> None:
+        """Comprueba que la credencial (y el modelo) son utilizables.
+
+        Hace una llamada mínima al proveedor. Si la clave o el modelo no valen,
+        lanza ``LLMError``. Lo usa BYOK para avisar al guardar, en vez de fallar
+        más tarde durante un análisis. El ``mock`` es un no-op.
+        """
+        ...

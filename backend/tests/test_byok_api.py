@@ -168,6 +168,36 @@ def test_delete_invalid_provider_422(client: TestClient) -> None:
     assert client.delete("/api/keys/mock").status_code == 422
 
 
+# --- API: validar la clave (POST /test) ------------------------------------
+
+
+def test_test_key_requires_auth(client: TestClient) -> None:
+    assert client.post("/api/keys/test", json=GEMINI).status_code == 401
+
+
+def test_test_key_ok(client: TestClient, monkeypatch) -> None:
+    _register(client)
+    # Sin red: el provider construido es el mock (validate() es no-op).
+    monkeypatch.setattr(
+        "app.services.byok.build_provider_cached", lambda *a, **k: MockProvider()
+    )
+    assert client.post("/api/keys/test", json=GEMINI).status_code == 204
+
+
+def test_test_key_invalid_returns_400(client: TestClient, monkeypatch) -> None:
+    _register(client)
+
+    class _Bad:
+        name = "gemini"
+
+        async def validate(self) -> None:
+            raise LLMError("clave rechazada", provider="gemini")
+
+    monkeypatch.setattr("app.services.byok.build_provider_cached", lambda *a, **k: _Bad())
+    r = client.post("/api/keys/test", json=GEMINI)
+    assert r.status_code == 400
+
+
 # --- Cifrado ---------------------------------------------------------------
 
 

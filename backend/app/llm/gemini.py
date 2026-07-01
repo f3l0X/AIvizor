@@ -49,6 +49,23 @@ class GeminiProvider:
         self._client = genai.Client(api_key=api_key)
         self._model = model
 
+    async def validate(self) -> None:
+        """Ping mínimo (1 token) para confirmar que la clave y el modelo valen."""
+        try:
+            from google.genai import types  # type: ignore
+
+            await self._client.aio.models.generate_content(
+                model=self._model,
+                contents="ping",
+                config=types.GenerateContentConfig(max_output_tokens=1),
+            )
+        except Exception as e:
+            raise LLMError(
+                f"Gemini rechazó la clave o el modelo: {e}",
+                provider=self.name,
+                cause=e,
+            ) from e
+
     async def complete_structured(
         self,
         *,

@@ -53,6 +53,10 @@ class MockProvider:
 
     name = "mock"
 
+    async def validate(self) -> None:
+        """El mock no tiene credenciales: siempre válido."""
+        return None
+
     async def complete_structured(
         self,
         *,

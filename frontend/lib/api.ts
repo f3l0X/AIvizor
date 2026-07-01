@@ -185,6 +185,17 @@ export async function putApiKey(req: ApiKeyCreate): Promise<ApiKeyPublic> {
   return r.json();
 }
 
+export async function testApiKey(req: ApiKeyCreate): Promise<void> {
+  const r = await fetch(`${API_URL}/api/keys/test`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    cache: 'no-store',
+    credentials: 'include',
+    body: JSON.stringify(req),
+  });
+  if (!r.ok) throw await parseError(r);
+}
+
 export async function setActiveProvider(provider: ByokProvider): Promise<ApiKeyPublic> {
   const r = await fetch(`${API_URL}/api/keys/active`, {
     method: 'PUT',
