@@ -1,7 +1,7 @@
 # Panel de administración — gestión de usuarios
 
 > Estado: implementado en Fase 7.5 (backend + frontend).
-> Tests: `backend/tests/test_admin_api.py` (12 tests). Suite total: 136 verdes.
+> Tests: `backend/tests/test_admin_api.py` (12 tests). Suite total: 146 verdes.
 > Depende de [auth.md](auth.md) (sesión + `require_admin`) y [byok.md](byok.md)
 > (la cascada que borra la clave al borrar el usuario).
 

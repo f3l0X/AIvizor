@@ -117,31 +117,40 @@ token.
 ## 5. BYOK — usa tu propia clave de IA
 
 Por defecto, los análisis usan la cuenta de IA del servidor. Con **BYOK** (*Bring
-Your Own Key*) aportas tu propia clave de **Gemini** o **Claude**, y el análisis y
-el entrenamiento consumen **tu** cuota.
+Your Own Key*) aportas tus propias claves de **Gemini** y/o **Claude**, y el
+análisis y el entrenamiento consumen **tu** cuota. Puedes guardar **una clave por
+proveedor** y elegir cuál está **activa**.
 
-**Configurarla**
+**Añadir una clave**
 
 1. Inicia sesión y abre **Ajustes** (haz clic en tu correo en la cabecera).
-2. En **Tu clave de IA (BYOK)**:
-   - Elige el **proveedor**: Gemini o Claude.
-   - (Opcional) escribe un **modelo**; si lo dejas vacío se usa el del proveedor.
-   - Pega tu **API key**.
-3. Pulsa **Guardar clave**.
+2. En **Tu clave de IA (BYOK)**, pega tu **API key** — el proveedor se detecta
+   solo por el prefijo (`AIza…` → Gemini, `sk-ant-…` → Claude).
+3. (Opcional) elige un **modelo** del desplegable; "Por defecto del proveedor" si
+   no estás seguro, o "Personalizado…" para escribir otro ID.
+4. Pulsa **Guardar clave**. Antes de guardarla se **valida contra el proveedor**:
+   si la clave o el modelo no valen, te avisa al momento y no se guarda nada.
 
 Dónde obtener una clave:
 - **Gemini** → Google AI Studio.
 - **Claude** → consola de Anthropic.
 
+**Gestionar tus claves**
+
+- La lista muestra cada clave guardada con su máscara y un distintivo **Activa**
+  en la que se está usando. La primera que guardas queda activa automáticamente.
+- **Usar esta** — cambia qué clave está activa (Gemini ↔ Claude).
+- **Reemplazar** — guarda otra clave del mismo proveedor y sustituye la anterior.
+- **Eliminar** — borra esa clave; si era la activa y tienes otra, la otra pasa a
+  activa. Sin claves, vuelves al proveedor del servidor.
+
 **Importante**
 
-- La clave se **cifra** y solo verás una **máscara** (`••••wxyz`, los últimos 4
+- Las claves se **cifran** y solo verás una **máscara** (`••••wxyz`, los últimos 4
   caracteres). No se puede volver a mostrar entera: si la pierdes, genera otra y
   vuelve a guardarla.
-- **Reemplazar**: guarda otra y sustituye la anterior (solo hay una activa).
-- **Eliminar**: con el botón *Eliminar* vuelves al proveedor del servidor.
-- Si tu clave deja de ser válida, el análisis fallará de forma visible (no se usa
-  en silencio la cuenta del servidor).
+- Si tu clave deja de ser válida más adelante, el análisis fallará de forma
+  visible (no se usa en silencio la cuenta del servidor).
 
 ---
 

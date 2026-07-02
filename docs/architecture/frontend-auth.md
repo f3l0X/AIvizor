@@ -35,7 +35,7 @@ ajustes para gestionar la clave BYOK.
 | Pieza | Fichero | Rol |
 |---|---|---|
 | Tipos | `frontend/lib/types.ts` | espejo de `UserPublic`, `Role`, `ApiKeyCreate/Public`, `ByokProvider` |
-| Cliente HTTP | `frontend/lib/api.ts` | `register/login/logout/getMe` + `getApiKey/putApiKey/deleteApiKey`; `credentials:'include'` en todo |
+| Cliente HTTP | `frontend/lib/api.ts` | `register/login/logout/getMe` + BYOK (`getApiKeys/putApiKey/testApiKey/setActiveProvider/deleteApiKey`); `credentials:'include'` en todo |
 | Contexto | `frontend/components/AuthProvider.tsx` | sesión en memoria: `user`, `status`, `login/register/logout/refresh` |
 | Cabecera | `frontend/components/SessionNav.tsx` | estado de sesión (anónimo / autenticado / badge admin) |
 | Formulario | `frontend/components/AuthForm.tsx` | credenciales compartidas por login y registro (`mode`) |

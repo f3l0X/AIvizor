@@ -1,7 +1,7 @@
 # BYOK — Bring Your Own Key (clave de LLM por usuario)
 
-> Estado: implementado en Fase 7.3 (backend).
-> Tests: `backend/tests/test_byok_api.py` (18 tests). Suite total: 124 verdes.
+> Estado: implementado en Fase 7.3 (backend); multi-clave + validación al guardar en 7.6.
+> Tests: `backend/tests/test_byok_api.py` (26 tests). Suite total: 146 verdes.
 
 Hasta la Fase 7.2 todas las llamadas al LLM usaban **una** cuenta: la del servidor
 (`LLM_PROVIDER` + claves en `.env`). BYOK permite que cada usuario aporte **su propia**

@@ -133,7 +133,7 @@ Ver [docs/architecture/trainer.md](./docs/architecture/trainer.md).
 Cada servicio depende de un `Protocol` (`AnalysisRepository`,
 `TrainingAttemptRepository`, `UserRepository`, `ApiKeyRepository`), no de
 SQLAlchemy. En producción FastAPI inyecta la implementación SQL; en tests, una
-`InMemory*` captura llamadas. Resultado: **136 tests sin Postgres, sin Docker,
+`InMemory*` captura llamadas. Resultado: **146 tests sin Postgres, sin Docker,
 sin red** — registro, login y BYOK se prueban contra repos en memoria.
 
 ### 5. Multi-usuario opcional con BYOK — sin romper la demo anónima (Fase 7)
@@ -240,8 +240,8 @@ backend/
     schemas/       # contrato Pydantic (catálogo cerrado de IndicatorType)
     db/            # SQLAlchemy + repositories (Protocol + SQL + InMemory)
     security/      # injection signals + passwords (bcrypt) + tokens (JWT) + crypto (Fernet)
-  alembic/         # migraciones 0001–0004 (users, user_api_keys)
-  tests/           # 136 tests, sin BD
+  alembic/         # migraciones 0001–0005 (users, user_api_keys multi-clave)
+  tests/           # 146 tests, sin BD
 
 frontend/
   app/[locale]/    # rutas por idioma (es, en): analyze, train, login, register, settings, admin
@@ -274,10 +274,11 @@ Cobertura por área:
 | **Injection (5 capas + 7 familias de payloads)** | **45** |
 | Trainer (service + endpoint) | 16 |
 | Auth (registro, login, sesión, roles) | 18 |
-| BYOK (CRUD, cifrado, resolución de provider) | 18 |
+| BYOK (multi-clave, cifrado, validación, resolución) | 26 |
 | Admin (CRUD usuarios, auto-protección) | 12 |
+| Errores (CORS en respuestas 500) | 2 |
 | Health | 1 |
-| **Total** | **136** |
+| **Total** | **146** |
 
 ---
 
@@ -295,6 +296,7 @@ Cobertura por área:
   - [x] **7.3 — BYOK.** Clave de LLM por usuario, cifrada en reposo (Fernet); resolución de provider por petición. → [doc](./docs/architecture/byok.md)
   - [x] **7.4 — Frontend de auth.** Login, registro y ajustes BYOK; estado de sesión en la cabecera. → [doc](./docs/architecture/frontend-auth.md)
   - [x] **7.5 — Panel admin.** Gestión de usuarios (activar/desactivar, rol, borrar) con auto-protección. → [doc](./docs/architecture/admin.md)
+  - [x] **7.6 — BYOK multi-clave.** Una clave por proveedor + selector de activa; validación de la clave contra el proveedor al guardar. → [doc](./docs/architecture/byok.md)
 
 ---
 
