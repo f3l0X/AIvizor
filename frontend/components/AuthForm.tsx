@@ -84,6 +84,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          maxLength={254}
           className="mt-1 block w-full rounded-md border border-slate-300 bg-white p-2.5 text-sm text-slate-900 shadow-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
         />
       </div>
@@ -103,6 +104,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
           onChange={(e) => setPassword(e.target.value)}
           required
           minLength={minLength}
+          maxLength={128}
           className="mt-1 block w-full rounded-md border border-slate-300 bg-white p-2.5 text-sm text-slate-900 shadow-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
         />
         {mode === 'register' && (

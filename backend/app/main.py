@@ -14,6 +14,7 @@ from app.api.train import router as train_router
 from app.config import settings
 from app.db.repositories import SqlUserRepository
 from app.db.session import session_scope
+from app.security.http_guards import BodySizeLimitMiddleware, RateLimitMiddleware
 from app.services.auth import ensure_admin
 
 # backend/ (raíz del proyecto Python): donde vive alembic.ini.
@@ -59,6 +60,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Guardias de entrada (Fase 7.7). En Starlette el ÚLTIMO add_middleware queda el
+# más externo: estas dos van después de CORS a propósito, para rechazar abuso
+# (429/413) antes de procesar nada. Sus respuestas de error no pasan por
+# CORSMiddleware, así que llevan sus propias cabeceras CORS (http_guards).
+app.add_middleware(BodySizeLimitMiddleware)
+app.add_middleware(RateLimitMiddleware)
 
 
 def _cors_headers(request: Request) -> dict[str, str]:

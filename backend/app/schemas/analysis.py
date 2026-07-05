@@ -5,7 +5,7 @@ contra ellos y, si la respuesta no encaja, lanza ``LLMError`` en lugar de devolv
 datos corruptos (ver `app/llm/base.py`).
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.schemas.common import IndicatorType, InputType, Language, Verdict
 
@@ -31,6 +31,19 @@ class AnalyzeRequest(BaseModel):
     content: str = Field(min_length=1, max_length=20_000)
     input_type: InputType
     language: Language = Language.ES
+
+    @field_validator("content", mode="before")
+    @classmethod
+    def _strip_null_bytes(cls, v: object) -> object:
+        """Elimina bytes nulos antes de validar longitudes.
+
+        Postgres rechaza ``\\x00`` en columnas de texto (error 500 río abajo) y
+        ningún contenido legítimo los trae. Se limpian aquí, en la frontera; si
+        el contenido queda vacío, el ``min_length=1`` lo rechaza con 422.
+        """
+        if isinstance(v, str):
+            return v.replace("\x00", "")
+        return v
 
 
 class AnalysisResult(BaseModel):

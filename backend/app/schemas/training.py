@@ -10,9 +10,10 @@ cliente hasta que el usuario ha respondido — el servicio del trainer la guarda
 o en BD y la oculta en la respuesta inicial (ver Fase 5).
 """
 
+from typing import Annotated
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StringConstraints
 
 from app.schemas.analysis import Indicator
 from app.schemas.common import Difficulty, InputType, Language, Verdict
@@ -84,11 +85,18 @@ class TrainingNextRequest(BaseModel):
 
 
 class TrainingAnswer(BaseModel):
-    """Respuesta del usuario a un sample."""
+    """Respuesta del usuario a un sample.
+
+    ``marked_indicator_types`` va acotada (nº de items y longitud de cada uno):
+    el catálogo real tiene 9 tipos, así que 20 items × 50 chars es holgado para
+    cualquier cliente legítimo y corta payloads maliciosos de megas.
+    """
 
     sample_id: UUID
     user_verdict: Verdict
-    marked_indicator_types: list[str] = Field(default_factory=list)
+    marked_indicator_types: list[Annotated[str, StringConstraints(max_length=50)]] = Field(
+        default_factory=list, max_length=20
+    )
 
 
 class TrainingFeedback(BaseModel):

@@ -28,6 +28,10 @@ from app.main import app
 # intente aplicar migraciones (Alembic se prueba aparte / en integración).
 settings.auto_migrate = False
 
+# La suite dispara ráfagas de register/login desde la misma "IP" del TestClient;
+# el rate limiting se prueba explícitamente en test_http_guards.py.
+settings.rate_limit_enabled = False
+
 
 @pytest.fixture
 def mock_provider() -> MockProvider:

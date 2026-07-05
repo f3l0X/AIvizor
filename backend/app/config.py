@@ -22,6 +22,17 @@ class Settings(BaseSettings):
 
     backend_cors_origins: str = "http://localhost:3000"
 
+    # --- Endurecimiento HTTP (Fase 7.7) ---
+    # Límite de tamaño del body (bytes). El payload legítimo más grande (~80 KB,
+    # un analyze con 20k chars escapados) cabe de sobra en 1 MB; todo lo demás es
+    # abuso y se corta con 413 antes de tocar la aplicación.
+    max_body_bytes: int = 1_048_576
+    # Rate limiting en memoria por IP (suficiente en single-instance; detrás de un
+    # proxy habría que derivar la IP de X-Forwarded-For). Desactivable en tests.
+    rate_limit_enabled: bool = True
+    rate_limit_auth_per_minute: int = 10  # register/login (anti fuerza bruta)
+    rate_limit_llm_per_minute: int = 30  # analyze/train/keys-test (coste LLM)
+
     # --- Auth (Fase 7.2) ---
     # JWT firmado HS256 y servido en cookie httpOnly. El secreto DEBE cambiarse en
     # cualquier despliegue real; el default solo sirve para desarrollo local.

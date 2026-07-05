@@ -111,6 +111,34 @@ El sistema **no**:
 Esto cierra la vía de "el LLM dice ‘abre esta URL para verificar’" — aunque el
 LLM falle en L3, la aplicación no tiene capacidad de obedecer.
 
+## L6 — Endurecimiento HTTP (Fase 7.7)
+
+Las capas L1–L5 defienden el *contenido*; L6 defiende la *frontera HTTP*
+(`security/http_guards.py`, tests en `test_http_guards.py`):
+
+- **Límite de tamaño del body** (`BodySizeLimitMiddleware`): FastAPI acepta por
+  defecto bodies de gigabytes. Se rechaza con **413** todo lo que supere
+  `MAX_BODY_BYTES` (1 MB por defecto; el payload legítimo máximo ronda 80 KB).
+  Cubre tanto `Content-Length` declarado como bodies *chunked* (cuenta y corta).
+- **Rate limiting** (`RateLimitMiddleware`): ventana deslizante en memoria por
+  `(bucket, IP)`. Dos buckets: `auth` (register/login — anti fuerza bruta,
+  `RATE_LIMIT_AUTH_PER_MINUTE`, 10 por defecto) y `llm` (analyze, train/*,
+  keys/test — anti abuso de coste, `RATE_LIMIT_LLM_PER_MINUTE`, 30 por defecto).
+  Excedido → **429** con `Retry-After`. Los intentos fallidos de login cuentan
+  igual: es justo lo que frena el fuzzing de credenciales.
+- **Cotas en listas**: `TrainingAnswer.marked_indicator_types` va acotada
+  (≤20 items, ≤50 chars/item) — antes era `list[str]` sin límite. El contenido
+  del Analyzer además limpia bytes nulos (`\x00`) que Postgres rechazaría.
+- Los 413/429 llevan **cabeceras CORS** propias (los middlewares quedan por fuera
+  de `CORSMiddleware`): sin ellas el navegador enmascararía el error como "sin
+  conexión" — la misma lección que el handler de 500.
+
+Límites de la implementación (deliberados para single-instance): la ventana vive
+en memoria (multi-worker ⇒ límite efectivo × workers) y la IP es la del socket —
+**detrás de un proxy inverso** habría que derivarla de `X-Forwarded-For` confiando
+solo en el proxy propio. `RATE_LIMIT_ENABLED=false` la apaga (la suite de tests lo
+hace en `conftest.py` y la prueba aparte con límites bajos).
+
 ## Logging y observabilidad
 
 Cada request pasa por `detect()` (L2). Si hay signals, `analyze_content` emite un
@@ -148,7 +176,8 @@ Resumen:
 
 (Por si esto deja de ser portfolio.)
 
-- Rate limiting por IP / sesión para frenar fuzzing automatizado de payloads.
+- ~~Rate limiting por IP para frenar fuzzing automatizado de payloads~~ → hecho en
+  L6 (Fase 7.7); faltaría llevarlo a un almacén compartido (Redis) para multi-instancia.
 - Tarpitting: introducir latencia artificial cuando se detectan signals.
 - Lista de bloqueo para payloads conocidos que aparezcan muchas veces.
 - Red team continuo (LLM contra LLM) buscando bypass.
