@@ -60,6 +60,29 @@ sin BD ni red.
   devuelve `None` y el endpoint traduce a 401.
 - `require_admin` — encadena `get_current_user` y exige `role == admin`, si no **403**.
 
+## Política de contraseñas (Fase 7.8)
+
+`security/passwords.py::validate_password_strength` — vive junto al hashing y
+lee las reglas de `settings` en cada llamada (configurables por env, apagables
+en tests con monkeypatch). Política **equilibrada** por defecto:
+
+- ≥ 8 caracteres (`PASSWORD_MIN_LENGTH`),
+- una mayúscula, una minúscula y un número (`PASSWORD_REQUIRE_{UPPERCASE,LOWERCASE,DIGIT}`),
+- símbolo disponible pero apagado (`PASSWORD_REQUIRE_SPECIAL=false`),
+- rechazo de contraseñas ultra comunes (`PASSWORD_REJECT_COMMON`), comparadas
+  con `casefold()` — `Password123` también cae.
+
+Se aplica **solo en el registro público**: `register_user` lanza
+`WeakPasswordError` (con los códigos incumplidos) y la API lo traduce a **422**
+con detail legible. El login no valida fortaleza (usuarios pre-política) y
+`ensure_admin` queda **exento a propósito** — el admin sembrado por
+`ADMIN_PASSWORD` no pasa por `UserCreate`, y validar ahí podría impedir el
+arranque con una contraseña de env corta.
+
+El frontend muestra un **checklist en vivo** en el registro
+(`frontend/lib/passwordPolicy.ts`, espejo de los defaults — decisión de UI como
+`INDICATORS_BY_INPUT_TYPE`); la barrera real es el backend.
+
 ## Admin inicial
 
 Si `ADMIN_EMAIL` y `ADMIN_PASSWORD` están definidos, el `lifespan` de FastAPI

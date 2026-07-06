@@ -12,16 +12,18 @@ from fastapi.testclient import TestClient
 from app.config import settings
 from app.db.repositories import InMemoryUserRepository
 from app.schemas.auth import Role, UserCreate, UserLogin
+from app.security.passwords import validate_password_strength
 from app.services.auth import (
     EmailTakenError,
     InactiveUserError,
     InvalidCredentialsError,
+    WeakPasswordError,
     authenticate_user,
     ensure_admin,
     register_user,
 )
 
-CREDS = {"email": "alice@example.com", "password": "supersecret1"}
+CREDS = {"email": "alice@example.com", "password": "Supersecret1"}
 
 
 # --- API ------------------------------------------------------------------
@@ -58,7 +60,7 @@ def test_register_short_password_rejected(client: TestClient) -> None:
 def test_register_invalid_email_rejected(client: TestClient) -> None:
     r = client.post(
         "/api/auth/register",
-        json={"email": "not-an-email", "password": "supersecret1"},
+        json={"email": "not-an-email", "password": "Supersecret1"},
     )
     assert r.status_code == 422
 
@@ -113,6 +115,70 @@ def test_logout_clears_session(client: TestClient) -> None:
 def test_me_with_tampered_token_unauthorized(client: TestClient) -> None:
     client.cookies.set(settings.cookie_name, "not.a.valid.jwt")
     assert client.get("/api/auth/me").status_code == 401
+
+
+# --- Política de contraseñas (Fase 7.8) ------------------------------------
+
+
+def test_password_policy_codes() -> None:
+    # Cada requisito que falta aparece con su código.
+    assert validate_password_strength("Sup3rSecreta") == []
+    assert "uppercase" in validate_password_strength("solominusculas1")
+    assert "lowercase" in validate_password_strength("SOLOMAYUSCULAS1")
+    assert "digit" in validate_password_strength("SinNumeros")
+    assert "min_length" in validate_password_strength("Ab1")
+    # Comunes caen aunque cumplan composición (comparación case-insensitive).
+    assert "common" in validate_password_strength("Password123")
+
+
+def test_password_policy_flags_are_configurable(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(settings, "password_require_uppercase", False)
+    monkeypatch.setattr(settings, "password_require_digit", False)
+    assert validate_password_strength("solominusculas") == []
+
+
+def test_password_policy_special_flag(monkeypatch: pytest.MonkeyPatch) -> None:
+    # El requisito de símbolo existe pero está apagado en la política equilibrada.
+    assert validate_password_strength("Sup3rSecreta") == []
+    monkeypatch.setattr(settings, "password_require_special", True)
+    assert "special" in validate_password_strength("Sup3rSecreta")
+    assert validate_password_strength("Sup3rSecreta!") == []
+
+
+def test_register_weak_password_rejected_with_detail(client: TestClient) -> None:
+    r = client.post(
+        "/api/auth/register",
+        json={"email": "weak@example.com", "password": "solominusculas1"},
+    )
+    assert r.status_code == 422
+    assert "uppercase" in r.json()["detail"]
+
+
+def test_register_common_password_rejected(client: TestClient) -> None:
+    r = client.post(
+        "/api/auth/register",
+        json={"email": "common@example.com", "password": "Password123"},
+    )
+    assert r.status_code == 422
+    assert "common" in r.json()["detail"]
+
+
+def test_register_strong_password_accepted(client: TestClient) -> None:
+    r = client.post(
+        "/api/auth/register",
+        json={"email": "strong@example.com", "password": "Sup3rSecreta"},
+    )
+    assert r.status_code == 201
+
+
+async def test_register_user_service_raises_weak_password() -> None:
+    repo = InMemoryUserRepository()
+    with pytest.raises(WeakPasswordError) as exc:
+        await register_user(
+            UserCreate(email="weak@example.com", password="solominusculas1"), repo=repo
+        )
+    assert "uppercase" in exc.value.failures
+    assert repo.users == {}  # no se persiste nada
 
 
 # --- Servicio -------------------------------------------------------------

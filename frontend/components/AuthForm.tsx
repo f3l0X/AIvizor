@@ -18,6 +18,7 @@ import { useLocale, useTranslations } from 'next-intl';
 
 import { useAuth } from './AuthProvider';
 import { errorMessage } from '../lib/errors';
+import { checkPassword, passwordMeetsPolicy } from '../lib/passwordPolicy';
 
 type Mode = 'login' | 'register';
 
@@ -32,11 +33,14 @@ export function AuthForm({ mode }: { mode: Mode }) {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // El registro exige contraseña de >= 8 (espejo de UserCreate); el login solo
-  // pide que no esté vacía (el backend valida las credenciales completas).
+  // El registro exige la política de contraseñas completa (checklist en vivo,
+  // espejo del backend); el login solo pide que no esté vacía (el backend
+  // valida las credenciales completas).
   const minLength = mode === 'register' ? 8 : 1;
-  const canSubmit =
-    email.trim().length > 0 && password.length >= minLength && !submitting;
+  const policyChecks = mode === 'register' ? checkPassword(password) : [];
+  const passwordOk =
+    mode === 'register' ? passwordMeetsPolicy(password) : password.length >= minLength;
+  const canSubmit = email.trim().length > 0 && passwordOk && !submitting;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,9 +112,24 @@ export function AuthForm({ mode }: { mode: Mode }) {
           className="mt-1 block w-full rounded-md border border-slate-300 bg-white p-2.5 text-sm text-slate-900 shadow-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
         />
         {mode === 'register' && (
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-            {t('form.passwordHint')}
-          </p>
+          // Checklist vivo de la política: los ✓ se encienden al teclear.
+          <ul aria-live="polite" className="mt-2 space-y-0.5 text-xs">
+            {policyChecks.map((c) => (
+              <li
+                key={c.code}
+                className={
+                  c.met
+                    ? 'text-emerald-600 dark:text-emerald-400'
+                    : 'text-slate-500 dark:text-slate-400'
+                }
+              >
+                <span aria-hidden className="mr-1 inline-block w-3">
+                  {c.met ? '✓' : '·'}
+                </span>
+                {t(`form.policy.${c.code}`)}
+              </li>
+            ))}
+          </ul>
         )}
       </div>
 

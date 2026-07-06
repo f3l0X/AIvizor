@@ -15,7 +15,7 @@ from app.config import settings
 from app.security.http_guards import SlidingWindowLimiter
 
 ANALYZE = {"content": "hola mundo", "input_type": "email", "language": "es"}
-CREDS = {"email": "guard@example.com", "password": "supersecret1"}
+CREDS = {"email": "guard@example.com", "password": "Supersecret1"}
 
 
 # --- Límite de tamaño del body ----------------------------------------------

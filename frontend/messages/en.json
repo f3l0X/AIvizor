@@ -22,7 +22,12 @@
     "form": {
       "email": "Email",
       "password": "Password",
-      "passwordHint": "At least 8 characters."
+      "policy": {
+        "minLength": "At least 8 characters",
+        "uppercase": "One uppercase letter",
+        "lowercase": "One lowercase letter",
+        "digit": "One number"
+      }
     },
     "login": {
       "title": "Sign in",

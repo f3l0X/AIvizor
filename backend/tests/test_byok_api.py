@@ -20,7 +20,7 @@ from app.schemas.byok import mask_key
 from app.security.crypto import CryptoError, decrypt_secret, encrypt_secret
 from app.services.byok import resolve_provider_for_user, set_api_key
 
-CREDS = {"email": "byok@example.com", "password": "supersecret1"}
+CREDS = {"email": "byok@example.com", "password": "Supersecret1"}
 GEMINI = {"provider": "gemini", "api_key": "gm-secret-wxyz", "model": "gemini-2.5-flash"}
 CLAUDE = {"provider": "claude", "api_key": "sk-ant-secret-abcd", "model": "claude-x"}
 

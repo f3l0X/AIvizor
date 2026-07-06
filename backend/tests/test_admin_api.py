@@ -15,8 +15,8 @@ from fastapi.testclient import TestClient
 from app.db.repositories import InMemoryUserRepository
 from app.schemas.auth import Role
 
-ADMIN = {"email": "admin@example.com", "password": "supersecret1"}
-USER = {"email": "user@example.com", "password": "supersecret1"}
+ADMIN = {"email": "admin@example.com", "password": "Supersecret1"}
+USER = {"email": "user@example.com", "password": "Supersecret1"}
 
 
 def _login_as_admin(client: TestClient, repo: InMemoryUserRepository) -> None:

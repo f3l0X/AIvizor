@@ -22,7 +22,12 @@
     "form": {
       "email": "Correo electrónico",
       "password": "Contraseña",
-      "passwordHint": "Mínimo 8 caracteres."
+      "policy": {
+        "minLength": "Al menos 8 caracteres",
+        "uppercase": "Una letra mayúscula",
+        "lowercase": "Una letra minúscula",
+        "digit": "Un número"
+      }
     },
     "login": {
       "title": "Iniciar sesión",

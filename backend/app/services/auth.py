@@ -9,7 +9,11 @@ from __future__ import annotations
 from app.config import settings
 from app.db.repositories import UserRepository
 from app.schemas.auth import Role, UserCreate, UserInDB, UserLogin
-from app.security.passwords import hash_password, verify_password
+from app.security.passwords import (
+    hash_password,
+    validate_password_strength,
+    verify_password,
+)
 
 
 class AuthError(Exception):
@@ -18,6 +22,14 @@ class AuthError(Exception):
 
 class EmailTakenError(AuthError):
     """El email ya está registrado."""
+
+
+class WeakPasswordError(AuthError):
+    """La contraseña no cumple la política (Fase 7.8). ``failures`` trae los códigos."""
+
+    def __init__(self, failures: list[str]) -> None:
+        super().__init__(", ".join(failures))
+        self.failures = failures
 
 
 class InvalidCredentialsError(AuthError):
@@ -34,6 +46,11 @@ async def register_user(
     repo: UserRepository,
     role: Role = Role.USER,
 ) -> UserInDB:
+    # Política de contraseñas (solo registro público; el admin sembrado por env
+    # entra por ensure_admin y queda exento a propósito — ver auth.md).
+    failures = validate_password_strength(data.password)
+    if failures:
+        raise WeakPasswordError(failures)
     if await repo.get_by_email(data.email) is not None:
         raise EmailTakenError(data.email)
     return await repo.create(

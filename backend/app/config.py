@@ -49,6 +49,17 @@ class Settings(BaseSettings):
     admin_email: str = ""
     admin_password: str = ""
 
+    # --- Política de contraseñas (Fase 7.8) ---
+    # Se aplica SOLO al registro público (no al login ni al admin sembrado, que
+    # no pasan por UserCreate). Política "equilibrada" por defecto; cada regla
+    # es desactivable por env.
+    password_min_length: int = 8
+    password_require_uppercase: bool = True
+    password_require_lowercase: bool = True
+    password_require_digit: bool = True
+    password_require_special: bool = False
+    password_reject_common: bool = True
+
     # --- BYOK (Fase 7.3) ---
     # Las API keys de LLM que aporta cada usuario se cifran en reposo con Fernet
     # (AES-128-CBC + HMAC). La clave DEBE cambiarse en producción y guardarse fuera

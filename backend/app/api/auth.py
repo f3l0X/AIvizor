@@ -24,6 +24,7 @@ from app.services.auth import (
     EmailTakenError,
     InactiveUserError,
     InvalidCredentialsError,
+    WeakPasswordError,
     authenticate_user,
     register_user,
 )
@@ -100,6 +101,12 @@ async def register(
 ) -> UserInDB:
     try:
         user = await register_user(payload, repo=repo)
+    except WeakPasswordError as e:
+        # Detail en inglés para consumidores de API; la UI tiene su checklist localizado.
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            f"Password does not meet the policy: {', '.join(e.failures)}",
+        ) from e
     except EmailTakenError as e:
         raise HTTPException(status.HTTP_409_CONFLICT, "Email already registered") from e
     _set_auth_cookie(response, user)

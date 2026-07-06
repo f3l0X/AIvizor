@@ -104,8 +104,10 @@ Pulsa **Siguiente** para otro ejemplo al nivel ajustado.
 Registrarte **no es necesario** para analizar o entrenar. Sirve para aportar tu
 propia clave de IA (siguiente apartado).
 
-- **Crear cuenta** — correo + contraseña (mínimo 8 caracteres). Al registrarte
-  inicias sesión automáticamente.
+- **Crear cuenta** — correo + contraseña. La contraseña debe tener al menos
+  8 caracteres, una mayúscula, una minúscula y un número (el formulario muestra
+  un checklist que se va marcando al teclear); las contraseñas muy comunes
+  (tipo `Password123`) se rechazan. Al registrarte inicias sesión automáticamente.
 - **Iniciar sesión** — con tu correo y contraseña.
 - **Salir** — cierra la sesión (botón junto a tu correo en la cabecera).
 
