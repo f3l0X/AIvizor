@@ -157,6 +157,20 @@ export async function getMe(): Promise<UserPublic> {
   return r.json();
 }
 
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  const r = await fetch(`${API_URL}/api/auth/change-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    cache: 'no-store',
+    credentials: 'include',
+    body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+  });
+  if (!r.ok) throw await parseError(r);
+}
+
 // ---------------------------------------------------------------------------
 // BYOK (Fase 7.4 / multi-clave 7.6)
 //

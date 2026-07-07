@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from app.config import settings
 from app.db.repositories import UserRepository
-from app.schemas.auth import Role, UserCreate, UserInDB, UserLogin
+from app.schemas.auth import PasswordChange, Role, UserCreate, UserInDB, UserLogin
 from app.security.passwords import (
     hash_password,
     validate_password_strength,
@@ -69,6 +69,26 @@ async def authenticate_user(data: UserLogin, *, repo: UserRepository) -> UserInD
     if not user.is_active:  # type: ignore[union-attr]  (user no es None aquí)
         raise InactiveUserError(data.email)
     return user  # type: ignore[return-value]
+
+
+async def change_password(
+    user: UserInDB,
+    data: PasswordChange,
+    *,
+    repo: UserRepository,
+) -> None:
+    """Cambia la contraseña del propio usuario.
+
+    Exige la contraseña actual (re-autenticación: una sesión robada no basta) y
+    aplica la política de fortaleza a la nueva. La cookie de sesión sigue siendo
+    válida tras el cambio — el JWT va ligado al id, no a la contraseña.
+    """
+    if not verify_password(data.current_password, user.password_hash):
+        raise InvalidCredentialsError(user.email)
+    failures = validate_password_strength(data.new_password)
+    if failures:
+        raise WeakPasswordError(failures)
+    await repo.update_password(user.id, hash_password(data.new_password))
 
 
 async def ensure_admin(repo: UserRepository) -> bool:

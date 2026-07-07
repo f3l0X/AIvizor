@@ -38,6 +38,17 @@ class UserLogin(BaseModel):
     password: str = Field(min_length=1, max_length=128)
 
 
+class PasswordChange(BaseModel):
+    """Cambio de contraseña del propio usuario (requiere la actual).
+
+    ``current_password`` solo exige no estar vacía (se verifica contra el hash);
+    ``new_password`` pasa además la política de fortaleza en el servicio.
+    """
+
+    current_password: str = Field(min_length=1, max_length=128)
+    new_password: str = Field(min_length=8, max_length=128)
+
+
 class UserInDB(BaseModel):
     """Representación interna con el hash. Uso exclusivo del backend (auth/services)."""
 

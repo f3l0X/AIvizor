@@ -16,6 +16,7 @@ import { useLocale, useTranslations } from 'next-intl';
 
 import { ApiKeyManager } from '../../../components/ApiKeyManager';
 import { useAuth } from '../../../components/AuthProvider';
+import { ChangePasswordForm } from '../../../components/ChangePasswordForm';
 
 export default function SettingsPage() {
   const t = useTranslations('settings');
@@ -58,6 +59,10 @@ export default function SettingsPage() {
           </div>
         </dl>
       </section>
+
+      <div className="mb-8">
+        <ChangePasswordForm />
+      </div>
 
       <ApiKeyManager />
     </main>

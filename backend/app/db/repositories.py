@@ -204,6 +204,8 @@ class UserRepository(Protocol):
         self, user_id: UUID, *, is_active: bool | None = None, role: Role | None = None
     ) -> UserInDB | None: ...
 
+    async def update_password(self, user_id: UUID, password_hash: str) -> UserInDB | None: ...
+
     async def delete(self, user_id: UUID) -> bool: ...
 
 
@@ -244,6 +246,15 @@ class SqlUserRepository:
             row.is_active = is_active
         if role is not None:
             row.role = role.value
+        await self._session.commit()
+        await self._session.refresh(row)
+        return UserInDB.model_validate(row)
+
+    async def update_password(self, user_id: UUID, password_hash: str) -> UserInDB | None:
+        row = await self._session.get(User, user_id)
+        if row is None:
+            return None
+        row.password_hash = password_hash
         await self._session.commit()
         await self._session.refresh(row)
         return UserInDB.model_validate(row)
@@ -296,6 +307,13 @@ class InMemoryUserRepository:
             user.is_active = is_active
         if role is not None:
             user.role = role
+        return user
+
+    async def update_password(self, user_id: UUID, password_hash: str) -> UserInDB | None:
+        user = self.users.get(user_id)
+        if user is None:
+            return None
+        user.password_hash = password_hash
         return user
 
     async def delete(self, user_id: UUID) -> bool:

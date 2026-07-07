@@ -109,6 +109,9 @@ propia clave de IA (siguiente apartado).
   un checklist que se va marcando al teclear); las contraseñas muy comunes
   (tipo `Password123`) se rechazan. Al registrarte inicias sesión automáticamente.
 - **Iniciar sesión** — con tu correo y contraseña.
+- **Cambiar contraseña** — en **Ajustes** (haz clic en tu correo): introduce la
+  actual y la nueva (misma política, con el checklist en vivo). Tu sesión sigue
+  abierta tras el cambio.
 - **Salir** — cierra la sesión (botón junto a tu correo en la cabecera).
 
 La sesión se guarda en una cookie segura; no tienes que copiar ni pegar ningún

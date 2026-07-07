@@ -18,7 +18,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.db.repositories import SqlUserRepository, UserRepository
 from app.db.session import get_db
-from app.schemas.auth import Role, UserCreate, UserInDB, UserLogin, UserPublic
+from app.schemas.auth import (
+    PasswordChange,
+    Role,
+    UserCreate,
+    UserInDB,
+    UserLogin,
+    UserPublic,
+)
 from app.security.tokens import create_access_token, decode_access_token
 from app.services.auth import (
     EmailTakenError,
@@ -26,6 +33,7 @@ from app.services.auth import (
     InvalidCredentialsError,
     WeakPasswordError,
     authenticate_user,
+    change_password,
     register_user,
 )
 
@@ -132,6 +140,31 @@ async def login(
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 async def logout(response: Response) -> None:
     response.delete_cookie(key=settings.cookie_name, path="/")
+
+
+@router.post("/change-password", status_code=status.HTTP_204_NO_CONTENT)
+async def change_password_endpoint(
+    payload: PasswordChange,
+    user: UserInDB = Depends(get_current_user),
+    repo: UserRepository = Depends(get_user_repo),
+) -> None:
+    """Cambia la contraseña del usuario de la sesión. Exige la actual.
+
+    400 si la actual no coincide (no 401: la sesión sigue siendo válida y no
+    queremos que el frontend la trate como expirada); 422 si la nueva no cumple
+    la política.
+    """
+    try:
+        await change_password(user, payload, repo=repo)
+    except InvalidCredentialsError as e:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, "Current password is incorrect"
+        ) from e
+    except WeakPasswordError as e:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            f"Password does not meet the policy: {', '.join(e.failures)}",
+        ) from e
 
 
 @router.get("/me", response_model=UserPublic)

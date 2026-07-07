@@ -117,6 +117,71 @@ def test_me_with_tampered_token_unauthorized(client: TestClient) -> None:
     assert client.get("/api/auth/me").status_code == 401
 
 
+# --- Cambio de contraseña ----------------------------------------------------
+
+
+def test_change_password_requires_auth(client: TestClient) -> None:
+    r = client.post(
+        "/api/auth/change-password",
+        json={"current_password": "Supersecret1", "new_password": "Nuev4Clave"},
+    )
+    assert r.status_code == 401
+
+
+def test_change_password_wrong_current_400(client: TestClient) -> None:
+    client.post("/api/auth/register", json=CREDS)
+    r = client.post(
+        "/api/auth/change-password",
+        json={"current_password": "Incorrecta1", "new_password": "Nuev4Clave"},
+    )
+    assert r.status_code == 400
+    # La sesión sigue viva: no es un 401.
+    assert client.get("/api/auth/me").status_code == 200
+
+
+def test_change_password_weak_new_422(client: TestClient) -> None:
+    client.post("/api/auth/register", json=CREDS)
+    r = client.post(
+        "/api/auth/change-password",
+        json={"current_password": CREDS["password"], "new_password": "solominusculas1"},
+    )
+    assert r.status_code == 422
+    assert "uppercase" in r.json()["detail"]
+
+
+def test_change_password_success_and_login_with_new(client: TestClient) -> None:
+    client.post("/api/auth/register", json=CREDS)
+    r = client.post(
+        "/api/auth/change-password",
+        json={"current_password": CREDS["password"], "new_password": "Nuev4Clave"},
+    )
+    assert r.status_code == 204
+    # La sesión actual sigue siendo válida (el JWT va ligado al id).
+    assert client.get("/api/auth/me").status_code == 200
+    # Tras logout: la vieja ya no entra, la nueva sí.
+    client.post("/api/auth/logout")
+    assert client.post("/api/auth/login", json=CREDS).status_code == 401
+    r = client.post(
+        "/api/auth/login", json={"email": CREDS["email"], "password": "Nuev4Clave"}
+    )
+    assert r.status_code == 200
+
+
+async def test_change_password_service_updates_hash() -> None:
+    from app.schemas.auth import PasswordChange
+    from app.services.auth import change_password
+
+    repo = InMemoryUserRepository()
+    user = await register_user(UserCreate(**CREDS), repo=repo)
+    old_hash = user.password_hash
+    await change_password(
+        user,
+        PasswordChange(current_password=CREDS["password"], new_password="Nuev4Clave"),
+        repo=repo,
+    )
+    assert repo.users[user.id].password_hash != old_hash
+
+
 # --- Política de contraseñas (Fase 7.8) ------------------------------------
 
 

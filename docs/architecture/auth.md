@@ -50,6 +50,7 @@ sin BD ni red.
 | `POST` | `/register` | crea usuario (rol `user`), **auto-login** (deja la cookie). 409 si el email ya existe. |
 | `POST` | `/login` | valida credenciales y pone la cookie. 401 genérico si fallan; 403 si la cuenta está inactiva. |
 | `POST` | `/logout` | borra la cookie (204). |
+| `POST` | `/change-password` | cambia la contraseña del usuario de la sesión (204). Exige la **actual** (400 si no coincide — no 401: la sesión sigue viva) y la nueva pasa la política (422). La cookie sigue siendo válida (el JWT va ligado al id); no invalida otras sesiones abiertas — limitación conocida (no hay versionado de sesión). |
 | `GET`  | `/me` | devuelve el usuario de la sesión. 401 si no hay sesión válida. |
 
 ## Dependencies de sesión

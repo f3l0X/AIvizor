@@ -65,6 +65,20 @@
         "admin": "Administrador"
       }
     },
+    "password": {
+      "title": "Cambiar contraseña",
+      "description": "Introduce tu contraseña actual y la nueva. La nueva debe cumplir la política de seguridad.",
+      "currentLabel": "Contraseña actual",
+      "newLabel": "Contraseña nueva",
+      "submit": "Cambiar contraseña",
+      "changed": "Contraseña actualizada.",
+      "error": {
+        "generic": "El servidor devolvió un error. Inténtalo de nuevo.",
+        "network": "No se pudo conectar con el backend. ¿Está corriendo en localhost:8000?",
+        "client": "{detail}",
+        "server": "El servidor falló: {detail}. Reintenta en unos segundos."
+      }
+    },
     "byok": {
       "title": "Tu clave de IA (BYOK)",
       "description": "Aporta tu propia clave de Gemini o Claude. El análisis y el entrenamiento consumirán tu cuota. Si no configuras ninguna, se usa la del servidor.",
